@@ -48,3 +48,8 @@ Rule: read this first in every session, append before saying done.
 - Start the discussion log and the process trace in the first turn, not at the end.
 - Log every idea the moment it is said (the house rule), even in plan mode, by queuing it for the
   first execution step.
+| 31 | agent | Plan approved. Logged 7 ideas (ID020 to ID026) to the SecondBrain ideas log; opened the Ideas folder as an Obsidian vault | SecondBrain | none |
+| 32 | agent | Created repo skeleton, CLAUDE.md with the standing rules, .gitignore, ideas.md, process-trace.md, discussions/2026-10-07.md; private repo satvik-jain-iitd/bhavna-ai; branches main and dev | repo | none |
+| 33 | agent | Split the plan into the docs tree, 11 ADRs, research tables (25 rows, tiers), experiments H1 to H8, test-cases.md, journal, README, CI, placeholder test; PR #1 feat -> dev, CI green, merged | docs, PR #1 | none |
+| 34 | agent | Labels; 12 epic and 33 story issues with Gherkin, DoR, DoD; branch protection refused (private repo, free plan); project board needs owner auth scope | issues | none |
+| 35 | agent | Demo D0 written; dev -> main PR opened for the owner to merge | PR #2 | asked (merge) |
