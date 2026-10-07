@@ -70,3 +70,4 @@ Rows: app. Columns: INSERT value. Cell: `ok` (inserted at cursor, clipboard rest
 | #89 repetition loop | Regression: spot clip has each sentence once, `repeats` 0 | pending re-run |
 | #88 tight window → nan | Regression: spot clip first chunk is not `nan` | working, agent, 2026-10-07 |
 | #89 repetition loop | Regression: spot clip has each sentence once | working, agent, 2026-10-07 (guard caught 2) |
+| tests/test_s9_0_wer.py | S9.0 T1 | WER and gap list | unit | green |
