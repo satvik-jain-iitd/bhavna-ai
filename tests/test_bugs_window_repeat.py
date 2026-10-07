@@ -21,3 +21,9 @@ def test_repeat_guard_keeps_honest_text():
     s = "haan haan theek hai, kal kal milte hain"
     out, n = d.collapse_repeats(s)
     assert out == s and n == 0
+
+
+def test_repeat_guard_collapses_a_long_phrase_said_twice():
+    s = "Weekend par ham sab ja rahe hain. To Friday ko jaldi niklana hai. To Friday ko jaldi niklana hai."
+    out, n = d.collapse_repeats(s)
+    assert out == "Weekend par ham sab ja rahe hain. To Friday ko jaldi niklana hai." and n == 1

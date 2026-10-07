@@ -76,7 +76,7 @@ def collapse_repeats(text, min_words=3, keep=1):
         for L in range(min_words, min(12, (n - i) // 2) + 1):      # shortest period first
             seg = words[i:i + L]; k = 1
             while words[i + k * L:i + (k + 1) * L] == seg: k += 1
-            if k > 2:
+            if k > 2 or (k == 2 and L >= 4):                        # a 4+ word phrase said twice back to back is the model, not the speaker
                 out += seg; removed += k - 1; i += k * L; hit = True; break
         if not hit: out.append(words[i]); i += 1
     return " ".join(out), removed
