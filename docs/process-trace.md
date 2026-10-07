@@ -88,3 +88,5 @@ Rule: read this first in every session, append before saying done.
 | 68 | agent | Found the real-mic bug from the log (speech_s 1.3 of 40.7 s, one chunk, tail trimmed); logged it as a sub-issue of #58 before fixing | issue | none |
 | 69 | owner | Read passage 004 live on the fixed engine; reported a new bug: inserted text came out in English | chat | reviewed |
 | 70 | agent | #94 verified and closed (8 pause cuts, full text); logged the short-final-chunk loop bug and the English-insert bug (needs info); accuracy row 004 | issues, accuracy.md | asked (app + sample) |
+| 71 | owner | Asked to learn terminal-without-mouse commands and use that passage as the test | chat | volunteered |
+| 72 | agent | Passage 005 read live: full text, no English, no loop (#96/#97 working on this run), but 0 pause cuts / 5 forced: the noise floor stuck low when the pre-roll was very quiet; next fix is a floor that follows the gaps between words | accuracy.md | none |
