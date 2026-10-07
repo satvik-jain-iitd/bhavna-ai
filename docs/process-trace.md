@@ -90,3 +90,4 @@ Rule: read this first in every session, append before saying done.
 | 70 | agent | #94 verified and closed (8 pause cuts, full text); logged the short-final-chunk loop bug and the English-insert bug (needs info); accuracy row 004 | issues, accuracy.md | asked (app + sample) |
 | 71 | owner | Asked to learn terminal-without-mouse commands and use that passage as the test | chat | volunteered |
 | 72 | agent | Passage 005 read live: full text, no English, no loop (#96/#97 working on this run), but 0 pause cuts / 5 forced: the noise floor stuck low when the pre-roll was very quiet; next fix is a floor that follows the gaps between words | accuracy.md | none |
+| 73 | agent | #99 logged from the 19:04 recording (floor ≈ speech, 73% energy under 1 kHz, likely AirPods); detector moved to the 300 to 3400 Hz band with a pre-roll floor; tail never trimmed; all three owner recordings pass; asked the owner whether AirPods were in | dictate.py, tests, issue #99 | asked |
