@@ -45,3 +45,20 @@ Rows: app. Columns: INSERT value. Cell: `ok` (inserted at cursor, clipboard rest
 | tests/test_bug_long_clips.py::test_long_clip_splits_at_the_quiet_point_and_keeps_everything | #56 | 70 s clip → ≤30 s pieces, cut in the pause, nothing lost | unit | green |
 | tests/test_bug_long_clips.py::test_postroll_constant | #56 | 300 ms post-roll after key release | unit | green |
 | #56 long dictation cut at 30 s | Regression: a 45 s dictation keeps its tail (≈4 w/s) | working, agent, 2026-10-07 16:40 on a 33 s synthetic clip (28.2 + 5.1 s pieces, 99 words, tail present); owner live check pending |
+
+## SIT (system integration, one per epic, GitHub sub-issues of the epic)
+
+| Epic | Check | Last result |
+|---|---|---|
+| E0 | fresh clone → pytest green; docs links resolve | pending |
+| E1 | bench.py on 12 fixtures ends ok | green 2026-10-07 (first run) |
+| E2 | sounds + stats row on a 2 s hold; tap → dropped | pending |
+| E3 | 45 s Hinglish into TextEdit, complete, release-to-text ≤ 1.5 s | pending (S3.4) |
+| E4 | full profile alternating clips route correctly, no reload | pending |
+| E5 | insertion matrix all ok | pending |
+| E6 | fresh account install + tcpdump zero | pending |
+| E7 | company laptop E3 flow | pending |
+| E8 | 5 dictations → 15 log files matching stats | pending |
+| E9 | corrected word right next time | pending |
+| E10 | WER lower on 50 own clips | pending |
+| E11 | fresh agent reproduces skeleton | pending |

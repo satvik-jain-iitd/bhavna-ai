@@ -171,3 +171,5 @@ check comes after, not instead.
   `docs/tests/test-cases.md` stays the flat index; GitHub holds the tree.
 - Scenario mapping comes before the story is marked ready: list what can happen, what can be missed,
   and which test covers each line. The list lives in the story body.
+- Each **epic** carries its system-integration test cases as `test` sub-issues: a story's tests check
+  the scenario, the epic's tests check the feature end to end on a real machine.
