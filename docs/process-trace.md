@@ -71,3 +71,5 @@ Rule: read this first in every session, append before saying done.
 | 51 | agent | Posted the verification comment with stats evidence (`insert: paste` rows), closed #54, regression row set to working | issue, test-cases.md | none |
 | 52 | owner | Tuned the feedback sound volume live: 3x too low, 5x ok, 10x too loud, settled on 3x; asked for a `bhavna` launcher | chat | volunteered |
 | 53 | agent | Demo D3 written from the owner's live session; tools/zip.sh (mac zip with the lean model) for D6 | demos/D3.md, tools/zip.sh | none |
+| 54 | owner | Reported: long sentences cut part way; guessed the recording did not stop after key release | chat | volunteered |
+| 55 | agent | Stats showed 46 s and 49.7 s clips with half the words: the 30 s window trimmed the tail. Logged #56 (sub-issue of S3.1) before fixing; fix = split at quiet points + 300 ms post-roll; tests red then green; PR | issue #56, dictate.py | none |
