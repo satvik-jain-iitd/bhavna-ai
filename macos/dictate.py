@@ -18,7 +18,7 @@ SR, BLOCK, PREROLL_S, MIN_S = 16000, 1600, 0.5, 0.3
 ROOT = Path(__file__).resolve().parents[1]
 MODELS, STATS, LOG_DIR = ROOT / "models", ROOT / "stats.jsonl", os.environ.get("LOG_DIR")
 SOUNDS = ("/System/Library/Sounds/Tink.aiff", "/System/Library/Sounds/Pop.aiff")  # start, done
-SOUND_VOLUME = 3.0         # afplay -v multiplier; 1 = system file level
+SOUND_VOLUME = 5.0         # afplay -v multiplier; 1 = system file level
 
 
 class Ring:
