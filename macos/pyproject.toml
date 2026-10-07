@@ -1,0 +1,15 @@
+[project]
+name = "bhavna-macos"
+version = "0.1.0"
+description = "Local Hinglish dictation for Apple silicon. One key. Instant. No bloat."
+requires-python = ">=3.12,<3.14"
+dependencies = [
+  "mlx-whisper>=0.4.3",
+  "parakeet-mlx>=0.3",
+  "sounddevice>=0.5",
+  "pynput>=1.8",
+  "numpy>=1.26",
+]
+
+[project.optional-dependencies]
+bench = ["faster-whisper>=1.1"]
