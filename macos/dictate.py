@@ -17,7 +17,7 @@ EN_THRESHOLD = 0.8         # tiny LID p(en) at or above this -> Parakeet, else A
 SR, BLOCK, PREROLL_S, POSTROLL_S, MIN_S = 16000, 1600, 0.5, 0.3, 0.3
 # S3.4 transcribe while talking (ADR-013): cut chunks at pauses, transcribe in the background, insert once at release
 PAUSE_S, MIN_CHUNK_S, MAX_CHUNK_S = 0.25, 4.0, 12.0     # cut after ≥ MIN_CHUNK_S when a pause ≥ PAUSE_S shows; force-cut at MAX_CHUNK_S
-SPEECH_MIN_S, MIN_SPEECH_RUN_S, MARGIN_S = 1.0, 0.25, 0.2  # a chunk needs ≥ SPEECH_MIN_S of speech; a burst < MIN_SPEECH_RUN_S is a click; trim margins
+SPEECH_MIN_S, MARGIN_S = 1.0, 0.2    # a chunk needs ≥ SPEECH_MIN_S of speech before it is sent; trim margin around speech
 CONTEXT_WORDS = 20         # previous chunk's last words go to the decoder as prompt (0 = off)
 ROOT = Path(__file__).resolve().parents[1]
 MODELS, STATS = ROOT / "models", ROOT / "stats.jsonl"
@@ -104,22 +104,19 @@ class Chunker:
     Chunks are trimmed to speech bounds (+ MARGIN_S). Pure logic: no threads, no model."""
     def __init__(self, sr=SR, block=BLOCK):
         self.sr, self.block, self.blocks, self.loud, self.floor = sr, block, [], [], None
-        self.offset, self.bounds, self.quiet_run, self.speech_run = 0, [], 0, 0
+        self.offset, self.bounds, self.quiet_run, self.rms_log = 0, [], 0, []
 
     def _is_speech(self, b):
-        rms = float(np.sqrt(np.mean(b * b)))
-        if self.floor is None: self.floor = min(rms, 0.02)            # first block is pre-roll room noise
-        speech = rms > max(3 * self.floor, 0.005) or rms > 0.02       # 0.02 is clear speech in any room
-        if not speech: self.floor = 0.9 * self.floor + 0.1 * rms      # the floor follows quiet blocks only
+        # Thresholds from the owner's real mic (bug #94): room 0.0025, gaps 0.002 to 0.003, speech p50 0.008, p90 0.015.
+        rms = float(np.sqrt(np.mean(b * b))); self.rms_log.append(rms)
+        if self.floor is None: self.floor = min(rms, 0.01)            # first block is pre-roll room noise
+        speech = rms > max(2 * self.floor, self.floor + 0.002, 0.0015)
+        if rms < 1.5 * self.floor: self.floor = 0.9 * self.floor + 0.1 * rms   # follow room-level blocks only, never speech dips
         return speech
 
     def push(self, b):
         sp = self._is_speech(b); self.blocks.append(b); self.loud.append(sp)
-        if sp:
-            self.speech_run += 1
-            if self.speech_run * self.block >= MIN_SPEECH_RUN_S * self.sr: self.quiet_run = 0
-        else:
-            self.quiet_run += 1; self.speech_run = 0
+        self.quiet_run = 0 if sp else self.quiet_run + 1
         dur = len(self.blocks) * self.block / self.sr
         if dur >= MIN_CHUNK_S and self.quiet_run * self.block >= PAUSE_S * self.sr:
             return self._emit(len(self.blocks) - self.quiet_run + 1, "pause")   # keep ~100 ms of the pause
@@ -136,8 +133,12 @@ class Chunker:
         first, last = loud.index(True), len(loud) - 1 - loud[::-1].index(True)
         speech_s = sum(loud) * self.block / self.sr
         if not final and speech_s < SPEECH_MIN_S: return []           # too little speech: merge with what follows
-        m = int(MARGIN_S * self.sr / self.block)
-        lo, hi = max(0, first - m), min(n_blocks, last + 1 + m)
+        # trim at most 1 s per end, and only blocks at room level (bug #94: never cut speech on a quiet mic)
+        m, cap = int(MARGIN_S * self.sr / self.block), int(1.0 * self.sr / self.block)
+        lo = max(0, first - m, first - cap) if first > m else 0        # leading: keep MARGIN_S, trim at most 1 s
+        hi = n_blocks if final else max(min(n_blocks, last + 1 + m), n_blocks - cap)  # trailing: final keeps all; else at most 1 s off
+        room = (self.floor or 0.0) + 0.0005
+        if any(float(np.sqrt(np.mean(x * x))) > room for x in blocks[hi:n_blocks]): hi = n_blocks  # any signal in the cut tail: keep it
         chunk = np.concatenate(blocks[lo:hi])
         self.bounds.append({"start_s": round((self.offset + lo * self.block) / self.sr, 2),
                             "end_s": round((self.offset + hi * self.block) / self.sr, 2), "speech_s": round(speech_s, 2), "kind": kind})
