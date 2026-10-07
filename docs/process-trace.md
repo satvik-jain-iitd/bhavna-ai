@@ -83,3 +83,6 @@ Rule: read this first in every session, append before saying done.
 | 63 | agent | D14 rule; story #58 with 16-row scenario map and test sub-issues #59 to #69, #85; story #70 (#71, #72); 12 epic SIT sub-issues; S4.4 #86; research rows 26 to 31; measurement section (release_to_text identity, targets, report tool, decision table) in the approved plan | issues, process.md, stt_models.md | none |
 | 64 | agent | S3.4 + S8.1 built with TDD (14 tests), spot test found #88 and #89, both logged first, fixed, verified; PR #87; H9 recorded | dictate.py, issues, experiments.md | none |
 | 65 | owner | Offered a live "podcast": agent asks, owner dictates answers in Hinglish; "uspe kaam chalu hai na?" | chat | volunteered |
+| 66 | owner | Proposed the read-aloud accuracy test (reference passage on screen, owner reads, diff) | chat | volunteered |
+| 67 | agent | S9.0 story, tools/wer.py, passage 001, accuracy.md (PR #93); first live read-aloud: WER 35% strict, tail missing | accuracy.md | none |
+| 68 | agent | Found the real-mic bug from the log (speech_s 1.3 of 40.7 s, one chunk, tail trimmed); logged it as a sub-issue of #58 before fixing | issue | none |
