@@ -27,6 +27,9 @@ Permissions, once, in System Settings › Privacy & Security, for the app that r
 
 Then hold **Right Option**, speak, release.
 
+Run one dictation tool at a time. FluidVoice (Option+Space) and others that use the Option key will
+trigger this hotkey too; quit them or change `KEYS`.
+
 Constants at the top of `macos/dictate.py`:
 | Constant | Default | Meaning |
 |---|---|---|

@@ -40,4 +40,4 @@ Rows: app. Columns: INSERT value. Cell: `ok` (inserted at cursor, clipboard rest
 | Bug | Check | Last result |
 |---|---|---|
 | #54 AX silent failure in terminals | matrix row Terminal × ax_then_paste must show `insert paste` and text present | pending owner verification |
-| #55 11 s clip to one word | re-run same words with LOG_DIR set; text has more than one word | needs info |
+| #55 11 s clip to one word | closed, not a bug: hotkey collision with FluidVoice (Option+Space) running at the same time | n/a |

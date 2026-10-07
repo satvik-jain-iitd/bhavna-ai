@@ -65,3 +65,5 @@ Rule: read this first in every session, append before saying done.
 | 45 | agent | Read stats (0.86 s for 2.8 s, 5.1 s for 24 s); confirmed R4 (AX silent failure in terminals); added the settable check and the insert method in stats, tests green, PR | dictate.py, experiments.md | none |
 | 46 | owner | Asked that the bug be logged first with full details | chat | volunteered |
 | 47 | agent | Logged #54 (AX silent failure in terminals) and #55 (11 s clip to one word); added rule D12 "log the bug before the fix"; linked PR #53 | issues, process.md | none |
+| 48 | owner | Explained #55: FluidVoice was running with Option+Space; the Option press also fired our hotkey. Not a bug | chat | volunteered |
+| 49 | agent | Closed #55 as not-a-bug with the explanation; README note on running one dictation tool at a time | issue, README | none |
