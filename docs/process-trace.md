@@ -70,3 +70,4 @@ Rule: read this first in every session, append before saying done.
 | 50 | owner | Verified #54 working in Claude Code after the fix (and with FluidVoice closed) | chat | reviewed |
 | 51 | agent | Posted the verification comment with stats evidence (`insert: paste` rows), closed #54, regression row set to working | issue, test-cases.md | none |
 | 52 | owner | Tuned the feedback sound volume live: 3x too low, 5x ok, 10x too loud, settled on 3x; asked for a `bhavna` launcher | chat | volunteered |
+| 53 | agent | Demo D3 written from the owner's live session; tools/zip.sh (mac zip with the lean model) for D6 | demos/D3.md, tools/zip.sh | none |
