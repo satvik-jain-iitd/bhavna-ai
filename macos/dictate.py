@@ -73,7 +73,7 @@ def collapse_repeats(text, min_words=3, keep=1):
     words = text.split(); n = len(words); i = 0; out = []; removed = 0
     while i < n:
         hit = False
-        for L in range(min(12, (n - i) // 2), min_words - 1, -1):
+        for L in range(min_words, min(12, (n - i) // 2) + 1):      # shortest period first
             seg = words[i:i + L]; k = 1
             while words[i + k * L:i + (k + 1) * L] == seg: k += 1
             if k > 2:
