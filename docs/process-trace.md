@@ -63,3 +63,5 @@ Rule: read this first in every session, append before saying done.
 | 43 | agent | dev -> main PR #47 now carries D0 and D1; owner to merge. Next: D3 live test needs the owner at the keyboard, permissions, and a model load he approves | PR #47 | asked (merge, go-ahead) |
 | 44 | owner | Asked how to test; ran the engine on his Mac; first 5 real dictations; reported: works, small accuracy slips, fast on short, long untested, paste fails in Claude Code | stats.jsonl | reviewed |
 | 45 | agent | Read stats (0.86 s for 2.8 s, 5.1 s for 24 s); confirmed R4 (AX silent failure in terminals); added the settable check and the insert method in stats, tests green, PR | dictate.py, experiments.md | none |
+| 46 | owner | Asked that the bug be logged first with full details | chat | volunteered |
+| 47 | agent | Logged #54 (AX silent failure in terminals) and #55 (11 s clip to one word); added rule D12 "log the bug before the fix"; linked PR #53 | issues, process.md | none |

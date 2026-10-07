@@ -127,3 +127,9 @@ Done is not the end. Each increment is followed by a measurement window and a st
 - No torch or transformers environment again; conversions are done, outputs are in `models/`.
 - Heavy runs (more than one model, more than two minutes) are asked for, not started.
 - `uv cache prune` after a conversion session.
+
+### D12. Bugs (added 2026-10-07 after the first live bug)
+Any defect found in use or in test is logged as a GitHub issue with label `bug` before the fix is
+written: summary, environment, steps, expected, actual, evidence, root cause, fix, test gap, status.
+The fixing PR says `Fixes #n`. The bug and the fix also get a row in experiments.md if a hypothesis
+was wrong, and a line in the journal.
