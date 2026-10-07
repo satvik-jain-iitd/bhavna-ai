@@ -62,3 +62,6 @@ Rows: app. Columns: INSERT value. Cell: `ok` (inserted at cursor, clipboard rest
 | E9 | corrected word right next time | pending |
 | E10 | WER lower on 50 own clips | pending |
 | E11 | fresh agent reproduces skeleton | pending |
+| tests/test_s3_4_chunker.py (T1 to T9) | S3.4 #59 to #67 | chunker, worker, route-once scenarios | unit | green |
+| tests/test_s8_1_log.py (T1, T2) | S8.1 #71, #72 | three files per dictation; empty LOG_DIR writes nothing | unit | green |
+| tests/test_s3_4_report.py | S3.4 #85 | report buckets, percentiles, before/after split | unit | green |
