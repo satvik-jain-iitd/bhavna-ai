@@ -10,7 +10,7 @@ git clone -q --depth 1 https://github.com/ml-explore/mlx-examples "$TMP/mlx-exam
 uv venv -q --python 3.12 "$TMP/venv"
 VENV_PY="$TMP/venv/bin/python"
 uv pip install -q --python "$VENV_PY" -r "$TMP/mlx-examples/whisper/mlx_whisper/requirements.txt" numba torch transformers ctranslate2 "huggingface_hub[cli]" mlx numpy tiktoken safetensors more-itertools
-conv() { "$VENV_PY" "$TMP/mlx-examples/whisper/convert.py" --torch-name-or-path "$1" --mlx-path "$2" -q --q-bits "$3"; }
+conv() { "$VENV_PY" "$TMP/mlx-examples/whisper/convert.py" --torch-name-or-path "$1" --mlx-path "$2" -q --q-bits "$3"; [ -f "$2/model.safetensors" ] && mv "$2/model.safetensors" "$2/weights.safetensors"; }  # mlx-whisper 0.4.3 loads weights.safetensors
 [ -f models/apex-mlx-q8/config.json ] || conv Oriserve/Whisper-Hindi2Hinglish-Apex models/apex-mlx-q8 8
 [ -f models/tiny-mlx/config.json ]    || conv openai/whisper-tiny models/tiny-mlx 8
 ct2() { "$TMP/venv/bin/ct2-transformers-converter" --model "$1" --output_dir "$2" --quantization int8 --copy_files tokenizer.json preprocessor_config.json --force; }

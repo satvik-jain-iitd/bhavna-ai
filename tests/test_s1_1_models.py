@@ -8,7 +8,7 @@ slow = pytest.mark.skipif(not M.exists(), reason="models/ not converted yet")
 
 @slow
 def test_s1_1_apex_mlx_q8_and_ct2_int8_exist():
-    assert (M / "apex-mlx-q8" / "weights.npz").exists() or (M / "apex-mlx-q8" / "weights.safetensors").exists()
+    assert (M / "apex-mlx-q8" / "weights.safetensors").exists()
     assert (M / "apex-mlx-q8" / "config.json").exists()
     assert (M / "apex-ct2-int8" / "model.bin").exists()
     assert (M / "apex-ct2-int8" / "tokenizer.json").exists()
