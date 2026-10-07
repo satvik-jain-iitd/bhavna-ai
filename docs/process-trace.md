@@ -75,3 +75,5 @@ Rule: read this first in every session, append before saying done.
 | 55 | agent | Stats showed 46 s and 49.7 s clips with half the words: the 30 s window trimmed the tail. Logged #56 (sub-issue of S3.1) before fixing; fix = split at quiet points + 300 ms post-roll; tests red then green; PR | issue #56, dictate.py | none |
 | 56 | owner | "Fix karo, lamba audio aana chahiye" | chat | volunteered |
 | 57 | agent | Verified #56 on a 33 s synthetic clip (split 28.2 + 5.1 s, tail present), closed with evidence; one model loaded, memory 57% free | issue #56 | none |
+| 58 | owner | Liked the self-run spot test with a synthesised Hindi clip; asked to make it part of the process | chat | volunteered |
+| 59 | agent | Added rule D13 "spot test before handing back" (synthesise with `say`, run the real path, paste the result) | process.md | none |

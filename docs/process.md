@@ -152,3 +152,12 @@ and tracked to closure with its verification and regression record. All of it li
 6. **Trace.** One row in `docs/process-trace.md` for the report and one for the closure; a line in
    the journal if the bug changed a decision.
 was wrong, and a line in the journal.
+
+### D13. Spot test before handing back (owner's rule, 2026-10-07)
+After any fix or feature that touches the audio or model path, the agent runs one end-to-end spot
+test itself before asking the owner to try it. Synthesise the input when a real one is not at hand:
+macOS `say` voices (Lekha for Hindi/Hinglish, Rishi or Aman for Indian English, Samantha for US
+English) through `ffmpeg` to 16 kHz mono wav give a repeatable clip in seconds. Run it through the
+real code path (`Models(...).hinglish()` and friends), not a mock, and paste the result in the issue
+or PR as the verification. Respect the RAM rules (one model, memory check first). The owner's live
+check comes after, not instead.
