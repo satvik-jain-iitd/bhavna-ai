@@ -2,12 +2,15 @@
 """Bhavna.ai, macOS. Hold the key, speak Hindi / English / both, release. Your exact words land at the cursor.
 Run: uv run --project macos macos/dictate.py
 """
-import json, os, platform, subprocess, sys, threading, time
+import json, math, os, platform, subprocess, sys, threading, time
 from collections import deque
 from pathlib import Path
 import numpy as np
 
-MODE = "auto"              # auto | en | hinglish   (what a key does by default)
+PROFILE = "lean"           # lean = Apex only (~0.9 GB, English too) | full = tiny + Parakeet + Apex (~2.3 GB)  (ADR-012)
+MODELS_FOR = {"lean": ("apex-mlx-q8",), "full": ("tiny-mlx", "parakeet-v2-mlx", "apex-mlx-q8")}
+WINDOW_STEP_S, WINDOW_MAX_S = 5, 30   # Apex encoder window: clip rounded up to the next step (ADR-012)
+MODE = "auto"              # auto | en | hinglish   (what a key does by default; lean ignores it, everything is Apex)
 KEYS = {"alt_r": MODE}     # pynput key name -> mode. Two-key layout: {"alt_r": "en", "cmd_r": "hinglish"}
 INSERT = "ax_then_paste"   # ax | paste | paste_shift | type | ax_then_paste   (owner's feel test, S5.0)
 EN_THRESHOLD = 0.8         # tiny LID p(en) at or above this -> Parakeet, else Apex (ADR-002)
@@ -54,23 +57,48 @@ def native(): return platform.machine() == "arm64" and not translated()  # ADR-0
 def beep(i): subprocess.Popen(["afplay", SOUNDS[i]])
 
 
-def route(probs, mode):
+def window_s(seconds):
+    return min(WINDOW_MAX_S, max(WINDOW_STEP_S, math.ceil(seconds / WINDOW_STEP_S) * WINDOW_STEP_S))
+
+
+def route(probs, mode, profile=None):
+    if (profile or PROFILE) == "lean": return "hinglish"
     if mode != "auto": return mode
     return "en" if probs.get("en", 0.0) >= EN_THRESHOLD else "hinglish"
 
 
 class Models:
-    """tiny (language ID), Parakeet v2 (English), Apex (Hinglish). All resident for the session (ADR-002)."""
-    def __init__(self):
-        import mlx.core as mx, mlx_whisper
+    """Apex (Hinglish and English). Full profile adds tiny (language ID) and Parakeet v2 (English). All resident (ADR-002, ADR-012)."""
+    def __init__(self, profile=PROFILE):
+        import mlx.core as mx, mlx.nn as nn
         from mlx_whisper.load_models import load_model
         from mlx_whisper.audio import log_mel_spectrogram, pad_or_trim, N_FRAMES, N_SAMPLES
-        from mlx_whisper.decoding import detect_language
+        from mlx_whisper.decoding import decode, detect_language, DecodingOptions
+        from mlx_whisper import whisper as W
+        for p in MODELS_FOR[profile]:
+            if not (MODELS / p).exists(): sys.exit(f"missing model folder: {MODELS / p}")
+
+        def encoder_call(self, x):  # ADR-012: slice the sinusoid table to the window, like whisper.cpp audio_ctx
+            x = nn.gelu(self.conv1(x)); x = nn.gelu(self.conv2(x))
+            x = x + self._positional_embedding[: x.shape[1]]
+            for block in self.blocks: x, _, _ = block(x)
+            return self.ln_post(x)
+        W.AudioEncoder.__call__ = encoder_call
+
+        apex = load_model(str(MODELS / "apex-mlx-q8"), dtype=mx.float16)
+        opts = DecodingOptions(language="en", task="transcribe", without_timestamps=True, temperature=0.0, fp16=True)
+
+        def hinglish(a):
+            w = window_s(len(a) / SR)
+            mel = pad_or_trim(log_mel_spectrogram(a, n_mels=apex.dims.n_mels, padding=max(0, w * SR - len(a))), w * 100, axis=-2).astype(mx.float16)
+            return decode(apex, mel, opts).text.strip()
+        self.hinglish, self.lid, self.en = hinglish, None, None
+        warm = np.zeros(SR, np.float32); hinglish(warm)
+        if profile != "full": return
+
         from parakeet_mlx import from_pretrained
         from parakeet_mlx.audio import get_logmel
-        for p in ("tiny-mlx", "parakeet-v2-mlx", "apex-mlx-q8"):
-            if not (MODELS / p).exists(): sys.exit(f"missing model folder: {MODELS / p}")
-        tiny, pk, apex = load_model(str(MODELS / "tiny-mlx"), dtype=mx.float16), from_pretrained(str(MODELS / "parakeet-v2-mlx")), str(MODELS / "apex-mlx-q8")
+        tiny, pk = load_model(str(MODELS / "tiny-mlx"), dtype=mx.float16), from_pretrained(str(MODELS / "parakeet-v2-mlx"))
 
         def lid(a):
             mel = pad_or_trim(log_mel_spectrogram(a, n_mels=tiny.dims.n_mels, padding=N_SAMPLES), N_FRAMES, axis=-2).astype(mx.float16)
@@ -78,13 +106,8 @@ class Models:
             return probs[0] if isinstance(probs, list) else probs
 
         def en(a): return pk.generate(get_logmel(mx.array(a), pk.preprocessor_config))[0].text.strip()
-
-        def hinglish(a):  # ponytail: mlx-whisper pads every clip to 30 s; flat encoder cost, revisit only if H3 fails
-            return mlx_whisper.transcribe(a, path_or_hf_repo=apex, language="en", temperature=0.0, fp16=True,
-                                          condition_on_previous_text=False, no_speech_threshold=None,
-                                          compression_ratio_threshold=None, logprob_threshold=None)["text"].strip()
-        self.lid, self.en, self.hinglish = lid, en, hinglish
-        warm = np.zeros(SR, np.float32); lid(warm); en(warm); hinglish(warm)
+        self.lid, self.en = lid, en
+        lid(warm); en(warm)
 
 
 def ax_insert(text):
@@ -128,14 +151,14 @@ def main():
     if not native(): sys.exit("arm64 only: run on Apple silicon without Rosetta")
     import sounddevice as sd
     from pynput import keyboard
-    t0 = time.perf_counter(); m = Models(); print(f"models: tiny ✓ parakeet ✓ apex ✓ ({time.perf_counter() - t0:.1f} s)")
+    t0 = time.perf_counter(); m = Models(PROFILE); print(f"models ({PROFILE}): {' '.join(MODELS_FOR[PROFILE])} ✓ ({time.perf_counter() - t0:.1f} s)")
     kb, ring, busy = keyboard.Controller(), Ring(), threading.Lock()
     keys = {getattr(keyboard.Key, k): v for k, v in KEYS.items()}
 
     def finish(mode):
         a = ring.stop()
         if too_short(a): print(f"dropped ({len(a) / SR:.1f}s)"); return
-        t = time.perf_counter(); probs = m.lid(a) if mode == "auto" else {}; r = route(probs, mode); lid_ms = (time.perf_counter() - t) * 1000
+        t = time.perf_counter(); probs = m.lid(a) if m.lid and mode == "auto" else {}; r = route(probs, mode); lid_ms = (time.perf_counter() - t) * 1000
         t = time.perf_counter(); text = m.en(a) if r == "en" else m.hinglish(a); asr_ms = (time.perf_counter() - t) * 1000
         t = time.perf_counter(); how = insert(text, kb) if text else "empty"; ins_ms = (time.perf_counter() - t) * 1000
         beep(1)
@@ -159,7 +182,7 @@ def main():
 
     with sd.InputStream(samplerate=SR, channels=1, dtype="float32", blocksize=BLOCK,
                         callback=lambda d, *_: ring.push(d[:, 0].copy())):
-        print(f"hold {' / '.join(KEYS)} to talk (mode {MODE}, insert {INSERT}). ctrl-c to quit.")
+        print(f"hold {' / '.join(KEYS)} to talk (profile {PROFILE}, mode {MODE}, insert {INSERT}). ctrl-c to quit.")
         with keyboard.Listener(on_press=on_press, on_release=on_release) as L: L.join()
 
 
