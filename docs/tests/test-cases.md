@@ -22,7 +22,7 @@ Rows: app. Columns: INSERT value. Cell: `ok` (inserted at cursor, clipboard rest
 | TextEdit | pending | pending | pending | pending | pending | |
 | Chrome (Gmail compose) | pending | pending | pending | pending | pending | |
 | VS Code | pending | pending | pending | pending | pending | |
-| Terminal | pending | pending | pending | pending | pending | |
+| Terminal | n/a (not settable) | pending | pending | pending | ok 2026-10-07 (falls back to paste) | Claude Code prompt, 4 dictations |
 | Slack | pending | pending | pending | pending | pending | |
 | tests/test_s4_router.py::test_s4_1_clear_english_goes_to_parakeet | S4.1 | clear English goes to Parakeet | unit | green |
 | tests/test_s4_router.py::test_s4_1_hinglish_goes_to_apex | S4.1 | Hinglish goes to Apex | unit | green |
@@ -39,5 +39,5 @@ Rows: app. Columns: INSERT value. Cell: `ok` (inserted at cursor, clipboard rest
 
 | Bug | Check | Last result |
 |---|---|---|
-| #54 AX silent failure in terminals | matrix row Terminal × ax_then_paste must show `insert paste` and text present | pending owner verification |
+| #54 AX silent failure in terminals | matrix row Terminal × ax_then_paste must show `insert paste` and text present | working, owner, 2026-10-07 16:15 (stats rows show `insert: paste`) |
 | #55 11 s clip to one word | closed, not a bug: hotkey collision with FluidVoice (Option+Space) running at the same time | n/a |
