@@ -119,3 +119,11 @@ Done is not the end. Each increment is followed by a measurement window and a st
 - CI: GitHub Actions on a macOS runner for unit tests (no models). `slow` tests run locally.
 
 ---
+
+### D11. RAM rules for the owner's machine (added 2026-10-07 after the swap incident)
+- The laptop is the owner's daily machine. Before any model load or conversion: read
+  `sysctl vm.swapusage`; above 2 GB used, do not run, say so.
+- Benchmarks load one model per process (`ONLY=`), never all at once unless the owner asks.
+- No torch or transformers environment again; conversions are done, outputs are in `models/`.
+- Heavy runs (more than one model, more than two minutes) are asked for, not started.
+- `uv cache prune` after a conversion session.

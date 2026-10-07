@@ -53,3 +53,8 @@ Rule: read this first in every session, append before saying done.
 | 33 | agent | Split the plan into the docs tree, 11 ADRs, research tables (25 rows, tiers), experiments H1 to H8, test-cases.md, journal, README, CI, placeholder test; PR #1 feat -> dev, CI green, merged | docs, PR #1 | none |
 | 34 | agent | Labels; 12 epic and 33 story issues with Gherkin, DoR, DoD; branch protection refused (private repo, free plan); project board needs owner auth scope | issues | none |
 | 35 | agent | Demo D0 written; dev -> main PR opened for the owner to merge | PR #2 | asked (merge) |
+| 36 | agent | Models converted (two fixes: numba, weights file name); fixtures made (4 TTS + 8 Apex clips); bench run | models/, tests/fixtures, experiments.md | none |
+| 37 | agent | E2 audio/hotkey/sounds/stats with TDD (red then green), PR #48 merged; E4 router tests PR #49 merged | dictate.py, tests | none |
+| 38 | agent | H1 pass (auto routing ships), H2 pass (Apex English word-perfect), H4 pass (Parakeet 0.45 s), H3 fail (Apex 5 s flat: 30 s encoder pad); H3b: window cut 15 s / 10 s gives 2.8 / 2.0 s, fp16 no gain, whisper.cpp 15 s 1.9 s | experiments.md | none |
+| 39 | owner | Mid-work: the laptop was swapping hard (5.6 of 6 GB); asked for RAM consideration | chat | volunteered |
+| 40 | agent | Stopped the bench; memory back to 50% free; RAM rules added to process; asked the owner when to run the last window test and whether the Mac profile should drop Parakeet to save 1.2 GB | process.md | asked |
