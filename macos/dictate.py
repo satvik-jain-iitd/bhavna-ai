@@ -18,6 +18,7 @@ SR, BLOCK, PREROLL_S, MIN_S = 16000, 1600, 0.5, 0.3
 ROOT = Path(__file__).resolve().parents[1]
 MODELS, STATS, LOG_DIR = ROOT / "models", ROOT / "stats.jsonl", os.environ.get("LOG_DIR")
 SOUNDS = ("/System/Library/Sounds/Tink.aiff", "/System/Library/Sounds/Pop.aiff")  # start, done
+SOUND_VOLUME = 3.0         # afplay -v multiplier; 1 = system file level
 
 
 class Ring:
@@ -54,7 +55,7 @@ def translated():
 def native(): return platform.machine() == "arm64" and not translated()  # ADR-008
 
 
-def beep(i): subprocess.Popen(["afplay", SOUNDS[i]])
+def beep(i): subprocess.Popen(["afplay", "-v", str(SOUND_VOLUME), SOUNDS[i]])
 
 
 def window_s(seconds):
