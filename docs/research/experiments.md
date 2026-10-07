@@ -80,3 +80,5 @@ Every open claim becomes a hypothesis with a test. Rows are never deleted.
 | english_us | 4.7 | 1.00 | 140 | 27860 | 27860 | 6346 | 6346 |
 | hindi_tts | 4.5 | 0.04 | 140 | 3598 | 3598 | 5282 | 5282 |
 | hinglish_tts | 4.7 | 0.02 | 125 | 1562 | 1562 | 4866 | 4866 |
+
+| H3-live | Lean profile with the 5 s-step window is fast enough in daily use | Owner's first live session, 5 dictations, stats.jsonl | English/Hinglish under 1.2 s for short clips; long clips reported | 2026-10-07 | 2.8 s clip → 0.86 s; 10 to 12 s → 2.3 s; 24 s / 95 words → 5.1 s. About 0.2 s per spoken second, linear. One 11 s clip gave 1 word (cause unknown, owner to say what was spoken) | Short dictation meets the target; long ones scale linearly. Accuracy: small slips ("transparai"), owner calls it fine for v1. Insertion failed inside Claude Code in the terminal: AX reported success, nothing inserted (R4 confirmed). Fix: AXUIElementIsAttributeSettable check before AX, else paste |

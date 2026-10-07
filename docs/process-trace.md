@@ -61,3 +61,9 @@ Rule: read this first in every session, append before saying done.
 | 41 | owner | Decided: bench runs only when he says; Mac default profile = lean (Apex only) | chat | asked, answered |
 | 42 | agent | ADR-012 lean profile + dynamic 5 s-step encoder window, implemented with tests (red then green), PR #51 merged; D1 PR #50 merged after a docs-only conflict; README, demo D1, journal PR #52 merged | dictate.py, docs | none |
 | 43 | agent | dev -> main PR #47 now carries D0 and D1; owner to merge. Next: D3 live test needs the owner at the keyboard, permissions, and a model load he approves | PR #47 | asked (merge, go-ahead) |
+| 44 | owner | Asked how to test; ran the engine on his Mac; first 5 real dictations; reported: works, small accuracy slips, fast on short, long untested, paste fails in Claude Code | stats.jsonl | reviewed |
+| 45 | agent | Read stats (0.86 s for 2.8 s, 5.1 s for 24 s); confirmed R4 (AX silent failure in terminals); added the settable check and the insert method in stats, tests green, PR | dictate.py, experiments.md | none |
+| 46 | owner | Asked that the bug be logged first with full details | chat | volunteered |
+| 47 | agent | Logged #54 (AX silent failure in terminals) and #55 (11 s clip to one word); added rule D12 "log the bug before the fix"; linked PR #53 | issues, process.md | none |
+| 48 | owner | Explained #55: FluidVoice was running with Option+Space; the Option press also fired our hotkey. Not a bug | chat | volunteered |
+| 49 | agent | Closed #55 as not-a-bug with the explanation; README note on running one dictation tool at a time | issue, README | none |
