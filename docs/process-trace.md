@@ -86,3 +86,5 @@ Rule: read this first in every session, append before saying done.
 | 66 | owner | Proposed the read-aloud accuracy test (reference passage on screen, owner reads, diff) | chat | volunteered |
 | 67 | agent | S9.0 story, tools/wer.py, passage 001, accuracy.md (PR #93); first live read-aloud: WER 35% strict, tail missing | accuracy.md | none |
 | 68 | agent | Found the real-mic bug from the log (speech_s 1.3 of 40.7 s, one chunk, tail trimmed); logged it as a sub-issue of #58 before fixing | issue | none |
+| 69 | owner | Read passage 004 live on the fixed engine; reported a new bug: inserted text came out in English | chat | reviewed |
+| 70 | agent | #94 verified and closed (8 pause cuts, full text); logged the short-final-chunk loop bug and the English-insert bug (needs info); accuracy row 004 | issues, accuracy.md | asked (app + sample) |
