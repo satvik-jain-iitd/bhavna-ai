@@ -28,6 +28,9 @@ Permissions, once, in System Settings › Privacy & Security, for the app that r
 
 Then hold **Right Option**, speak, release.
 
+Mic: the built-in MacBook mic gives the cleanest signal. AirPods work, but their constant noise floor
+makes pauses harder to hear; the engine then cuts every 12 s instead of at your pauses.
+
 Run one dictation tool at a time. FluidVoice (Option+Space) and others that use the Option key will
 trigger this hotkey too; quit them or change `KEYS`.
 
