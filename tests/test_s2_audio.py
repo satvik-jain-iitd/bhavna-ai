@@ -57,3 +57,8 @@ def test_s2_4_rosetta_guard(monkeypatch):
     monkeypatch.setattr(d.platform, "machine", lambda: "arm64")
     monkeypatch.setattr(d, "translated", lambda: False)
     assert d.native()
+
+
+def test_s2_7_three_sounds_start_stop_done():
+    assert len(d.SOUNDS) == 3 and len(set(d.SOUNDS)) == 3
+    import os; assert all(os.path.exists(x) for x in d.SOUNDS)

@@ -3,8 +3,8 @@
 Local Hinglish dictation. One key. Instant. No bloat.
 
 Hold one key, speak Hindi, English or both mixed, release. Your exact words land at the cursor as
-Roman text. Nothing leaves the machine. No window, no tray icon: a short sound when recording
-starts and another when the text is in.
+Roman text. Nothing leaves the machine. No window, no tray icon: three short sounds: recording
+started, recording stopped (key up), text inserted.
 
 Plan and case study: `docs/PLAN.md`. Docs index: `docs/README.md`.
 
