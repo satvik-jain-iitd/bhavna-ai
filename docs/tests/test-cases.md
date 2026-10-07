@@ -24,3 +24,13 @@ Rows: app. Columns: INSERT value. Cell: `ok` (inserted at cursor, clipboard rest
 | VS Code | pending | pending | pending | pending | pending | |
 | Terminal | pending | pending | pending | pending | pending | |
 | Slack | pending | pending | pending | pending | pending | |
+| tests/test_s4_router.py::test_s4_1_clear_english_goes_to_parakeet | S4.1 | clear English goes to Parakeet | unit | green |
+| tests/test_s4_router.py::test_s4_1_hinglish_goes_to_apex | S4.1 | Hinglish goes to Apex | unit | green |
+| tests/test_s4_router.py::test_s4_1_boundary_is_english | S4.1 | boundary p(en)=0.80 | unit | green |
+| tests/test_s4_router.py::test_s4_1_unknown_language_goes_to_apex | S4.1 | fail-safe to Apex | unit | green |
+| tests/test_s4_router.py::test_s4_3_pinned_mode_skips_lid | S4.3 | a pinned mode skips LID | unit | green |
+| tests/test_s4_router.py::test_s4_3_two_key_layout_is_one_dict_entry | S4.3 | two-key layout | unit | green |
+| tools/bench.py + experiments.md H1 | S4.1 | LID gate on real clips | bench | see experiments.md |
+| tests/test_s3_window_profile.py::test_window_rounds_up_to_5s_steps_with_floor_and_cap | ADR-012 | encoder window = clip rounded up to 5 s, min 5, max 30 | unit | green |
+| tests/test_s3_window_profile.py::test_lean_profile_loads_apex_only | ADR-012 | lean loads Apex only, full loads three | unit | green |
+| tests/test_s3_window_profile.py::test_lean_profile_routes_everything_to_apex | ADR-012 | lean never routes to Parakeet | unit | green |
