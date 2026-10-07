@@ -58,3 +58,6 @@ Rule: read this first in every session, append before saying done.
 | 38 | agent | H1 pass (auto routing ships), H2 pass (Apex English word-perfect), H4 pass (Parakeet 0.45 s), H3 fail (Apex 5 s flat: 30 s encoder pad); H3b: window cut 15 s / 10 s gives 2.8 / 2.0 s, fp16 no gain, whisper.cpp 15 s 1.9 s | experiments.md | none |
 | 39 | owner | Mid-work: the laptop was swapping hard (5.6 of 6 GB); asked for RAM consideration | chat | volunteered |
 | 40 | agent | Stopped the bench; memory back to 50% free; RAM rules added to process; asked the owner when to run the last window test and whether the Mac profile should drop Parakeet to save 1.2 GB | process.md | asked |
+| 41 | owner | Decided: bench runs only when he says; Mac default profile = lean (Apex only) | chat | asked, answered |
+| 42 | agent | ADR-012 lean profile + dynamic 5 s-step encoder window, implemented with tests (red then green), PR #51 merged; D1 PR #50 merged after a docs-only conflict; README, demo D1, journal PR #52 merged | dictate.py, docs | none |
+| 43 | agent | dev -> main PR #47 now carries D0 and D1; owner to merge. Next: D3 live test needs the owner at the keyboard, permissions, and a model load he approves | PR #47 | asked (merge, go-ahead) |
