@@ -23,7 +23,7 @@ RESTORE_S = 1.5            # clipboard restore delay after a paste; a slow app r
 ROOT = Path(__file__).resolve().parents[1]
 MODELS, STATS = ROOT / "models", ROOT / "stats.jsonl"
 LOG_DIR = os.environ.get("LOG_DIR", str(ROOT / "log"))  # S8.1: on by default, local only; LOG_DIR="" turns it off
-SOUNDS = ("/System/Library/Sounds/Tink.aiff", "/System/Library/Sounds/Pop.aiff")  # start, done
+SOUNDS = ("/System/Library/Sounds/Tink.aiff", "/System/Library/Sounds/Bottle.aiff", "/System/Library/Sounds/Pop.aiff")  # start, stop (key up), done (text in)
 SOUND_VOLUME = 3.0         # afplay -v multiplier; 1 = system file level
 
 
@@ -338,7 +338,7 @@ def main():
         if too_short(a) or not out.items: print(f"dropped ({len(a) / SR:.1f}s)"); return
         text = " ".join(r["text"] for r in out.items if r["text"]); r = st["route"].r or "hinglish"
         t0 = time.perf_counter(); how = insert(text, kb) if text else "empty"; t1 = time.perf_counter()
-        beep(1)
+        beep(2)
         fin = out.items[-1]; wait_ms = max(0.0, (fin["t_start"] - t_final_q) * 1000) if last is not None else 0.0
         rel = (t1 - t_up) * 1000; asr_total = sum(x["ms"] for x in out.items); audio_s = len(a) / SR
         kinds = [bd["kind"] for bd in ch.bounds]
@@ -358,7 +358,7 @@ def main():
 
     def on_release(k):
         if k in keys and ring.rec is not None and busy.acquire(blocking=False):
-            t_up = time.perf_counter()
+            t_up = time.perf_counter(); beep(1)
             def run():
                 try: finish(t_up)
                 except Exception as e: print(f"error: {e}")
