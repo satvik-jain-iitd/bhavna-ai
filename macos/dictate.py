@@ -19,6 +19,7 @@ SR, BLOCK, PREROLL_S, POSTROLL_S, MIN_S = 16000, 1600, 0.5, 0.3, 0.3
 PAUSE_S, MIN_CHUNK_S, MAX_CHUNK_S = 0.25, 4.0, 12.0     # cut after ≥ MIN_CHUNK_S when a pause ≥ PAUSE_S shows; force-cut at MAX_CHUNK_S
 SPEECH_MIN_S, MARGIN_S = 1.0, 0.2    # a chunk needs ≥ SPEECH_MIN_S of speech before it is sent; trim margin around speech
 CONTEXT_WORDS = 20         # previous chunk's last words go to the decoder as prompt (0 = off)
+RESTORE_S = 1.5            # clipboard restore delay after a paste; a slow app reads the clipboard late (bug #97)
 ROOT = Path(__file__).resolve().parents[1]
 MODELS, STATS = ROOT / "models", ROOT / "stats.jsonl"
 LOG_DIR = os.environ.get("LOG_DIR", str(ROOT / "log"))  # S8.1: on by default, local only; LOG_DIR="" turns it off
@@ -61,6 +62,11 @@ def native(): return platform.machine() == "arm64" and not translated()  # ADR-0
 
 
 def beep(i): subprocess.Popen(["afplay", "-v", str(SOUND_VOLUME), SOUNDS[i]])
+
+
+def sample_len(seconds):
+    """Decoder token cap from audio length (bug #96): Roman Hinglish ≈ 6 tokens/s; 8/s + 24 leaves margin, 440 is whisper's context."""
+    return int(min(440, 24 + 8 * max(1, math.ceil(seconds))))
 
 
 def window_s(seconds):
@@ -229,6 +235,7 @@ class Models:
         def one(a, o=opts):
             w = window_s(len(a) / SR)
             mel = pad_or_trim(log_mel_spectrogram(a, n_mels=apex.dims.n_mels, padding=max(0, w * SR - len(a))), w * 100, axis=-2).astype(mx.float16)
+            o = DecodingOptions(**{**o.__dict__, "sample_len": sample_len(len(a) / SR)})
             return decode(apex, mel, o).text.strip()
 
         def hinglish(a, prompt=None):
@@ -278,7 +285,7 @@ def paste_insert(text, kb, shift=False):
     def restore():
         if old is not None and pb.changeCount() == mine:
             pb.clearContents(); pb.setString_forType_(old, NSPasteboardTypeString)
-    threading.Timer(0.3, restore).start()
+    threading.Timer(RESTORE_S, restore).start()
     return True
 
 
