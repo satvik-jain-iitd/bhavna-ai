@@ -41,3 +41,7 @@ Rows: app. Columns: INSERT value. Cell: `ok` (inserted at cursor, clipboard rest
 |---|---|---|
 | #54 AX silent failure in terminals | matrix row Terminal × ax_then_paste must show `insert paste` and text present | working, owner, 2026-10-07 16:15 (stats rows show `insert: paste`) |
 | #55 11 s clip to one word | closed, not a bug: hotkey collision with FluidVoice (Option+Space) running at the same time | n/a |
+| tests/test_bug_long_clips.py::test_short_clip_is_one_piece | #56 | clips under 30 s untouched | unit | green |
+| tests/test_bug_long_clips.py::test_long_clip_splits_at_the_quiet_point_and_keeps_everything | #56 | 70 s clip → ≤30 s pieces, cut in the pause, nothing lost | unit | green |
+| tests/test_bug_long_clips.py::test_postroll_constant | #56 | 300 ms post-roll after key release | unit | green |
+| #56 long dictation cut at 30 s | Regression: a 45 s dictation keeps its tail (≈4 w/s) | pending owner verification |

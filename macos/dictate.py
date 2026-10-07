@@ -14,7 +14,7 @@ MODE = "auto"              # auto | en | hinglish   (what a key does by default;
 KEYS = {"alt_r": MODE}     # pynput key name -> mode. Two-key layout: {"alt_r": "en", "cmd_r": "hinglish"}
 INSERT = "ax_then_paste"   # ax | paste | paste_shift | type | ax_then_paste   (owner's feel test, S5.0)
 EN_THRESHOLD = 0.8         # tiny LID p(en) at or above this -> Parakeet, else Apex (ADR-002)
-SR, BLOCK, PREROLL_S, MIN_S = 16000, 1600, 0.5, 0.3
+SR, BLOCK, PREROLL_S, POSTROLL_S, MIN_S = 16000, 1600, 0.5, 0.3, 0.3
 ROOT = Path(__file__).resolve().parents[1]
 MODELS, STATS, LOG_DIR = ROOT / "models", ROOT / "stats.jsonl", os.environ.get("LOG_DIR")
 SOUNDS = ("/System/Library/Sounds/Tink.aiff", "/System/Library/Sounds/Pop.aiff")  # start, done
@@ -62,6 +62,18 @@ def window_s(seconds):
     return min(WINDOW_MAX_S, max(WINDOW_STEP_S, math.ceil(seconds / WINDOW_STEP_S) * WINDOW_STEP_S))
 
 
+def pieces(a, max_s=WINDOW_MAX_S, search_s=2.0, frame=320):
+    """Split audio longer than max_s into pieces of at most max_s, cutting at the quietest 20 ms frame
+    in the last search_s before each boundary (bug #56: whisper's 30 s context would drop the tail)."""
+    out, start = [], 0
+    while len(a) - start > max_s * SR:
+        lo, hi = start + int((max_s - search_s) * SR), start + max_s * SR
+        frames = a[lo:hi].reshape(-1, frame) if (hi - lo) % frame == 0 else a[lo:hi][: (hi - lo) // frame * frame].reshape(-1, frame)
+        cut = lo + int(np.argmin(np.abs(frames).mean(axis=1))) * frame
+        out.append(a[start:cut]); start = cut
+    out.append(a[start:]); return out
+
+
 def route(probs, mode, profile=None):
     if (profile or PROFILE) == "lean": return "hinglish"
     if mode != "auto": return mode
@@ -89,10 +101,12 @@ class Models:
         apex = load_model(str(MODELS / "apex-mlx-q8"), dtype=mx.float16)
         opts = DecodingOptions(language="en", task="transcribe", without_timestamps=True, temperature=0.0, fp16=True)
 
-        def hinglish(a):
+        def one(a):
             w = window_s(len(a) / SR)
             mel = pad_or_trim(log_mel_spectrogram(a, n_mels=apex.dims.n_mels, padding=max(0, w * SR - len(a))), w * 100, axis=-2).astype(mx.float16)
             return decode(apex, mel, opts).text.strip()
+
+        def hinglish(a): return " ".join(t for t in (one(p) for p in pieces(a)) if t)
         self.hinglish, self.lid, self.en = hinglish, None, None
         warm = np.zeros(SR, np.float32); hinglish(warm)
         if profile != "full": return
@@ -160,6 +174,7 @@ def main():
     keys = {getattr(keyboard.Key, k): v for k, v in KEYS.items()}
 
     def finish(mode):
+        time.sleep(POSTROLL_S)  # keep the last syllable spoken as the key comes up
         a = ring.stop()
         if too_short(a): print(f"dropped ({len(a) / SR:.1f}s)"); return
         t = time.perf_counter(); probs = m.lid(a) if m.lid and mode == "auto" else {}; r = route(probs, mode); lid_ms = (time.perf_counter() - t) * 1000
