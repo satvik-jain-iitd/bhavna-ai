@@ -38,7 +38,7 @@ Constants at the top of `macos/dictate.py`:
 | `KEYS` | `{"alt_r": MODE}` | key → mode. Two keys: `{"alt_r": "en", "cmd_r": "hinglish"}` (full profile) |
 | `MODE` | `auto` | `auto` / `en` / `hinglish` (full profile only) |
 | `INSERT` | `ax_then_paste` | `ax` / `paste` / `paste_shift` / `type` / `ax_then_paste` |
-| `WINDOW_STEP_S` | `5` | encoder window step in seconds (ADR-012) |
+| `WINDOW_SLACK_S` | `1.0` | silence left after the speech inside the encoder window (ADR-012) |
 | `LOG_DIR` (env) | unset | when set, saves `(wav, txt)` per dictation for the dictionary and fine-tune phases |
 
 Each dictation prints one line with timings (`release→text` and its parts: wait, final chunk, insert) and

@@ -9,7 +9,7 @@ import numpy as np
 
 PROFILE = "lean"           # lean = Apex only (~0.9 GB, English too) | full = tiny + Parakeet + Apex (~2.3 GB)  (ADR-012)
 MODELS_FOR = {"lean": ("apex-mlx-q8",), "full": ("tiny-mlx", "parakeet-v2-mlx", "apex-mlx-q8")}
-WINDOW_STEP_S, WINDOW_MAX_S = 5, 30   # Apex encoder window: clip rounded up to the next step (ADR-012)
+WINDOW_SLACK_S, WINDOW_MAX_S = 1.0, 30   # Apex encoder window: clip + 1 s of silence, whole seconds, max 30 (ADR-012, bugs #88 #89)
 MODE = "auto"              # auto | en | hinglish   (what a key does by default; lean ignores it, everything is Apex)
 KEYS = {"alt_r": MODE}     # pynput key name -> mode. Two-key layout: {"alt_r": "en", "cmd_r": "hinglish"}
 INSERT = "ax_then_paste"   # ax | paste | paste_shift | type | ax_then_paste   (owner's feel test, S5.0)
@@ -64,7 +64,22 @@ def beep(i): subprocess.Popen(["afplay", "-v", str(SOUND_VOLUME), SOUNDS[i]])
 
 
 def window_s(seconds):
-    return min(WINDOW_MAX_S, max(WINDOW_STEP_S, math.ceil(seconds / WINDOW_STEP_S) * WINDOW_STEP_S))
+    """Whole seconds, always ≥ 1 s of silence after the speech (whisper loops or emits 'nan' without it), max 30."""
+    return int(min(WINDOW_MAX_S, max(2, math.ceil(seconds + WINDOW_SLACK_S))))
+
+
+def collapse_repeats(text, min_words=3, keep=1):
+    """Whisper loop guard (bug #89): a phrase of ≥ min_words that repeats back to back is kept once. Returns (text, removed)."""
+    words = text.split(); n = len(words); i = 0; out = []; removed = 0
+    while i < n:
+        hit = False
+        for L in range(min(12, (n - i) // 2), min_words - 1, -1):
+            seg = words[i:i + L]; k = 1
+            while words[i + k * L:i + (k + 1) * L] == seg: k += 1
+            if k > 2:
+                out += seg; removed += k - 1; i += k * L; hit = True; break
+        if not hit: out.append(words[i]); i += 1
+    return " ".join(out), removed
 
 
 def quietest(a, lo, hi, frame=320):
@@ -143,7 +158,7 @@ class Chunker:
 
 
 class WorkerOut:
-    def __init__(self): self.items, self.errors, self.done = [], 0, threading.Event()
+    def __init__(self): self.items, self.errors, self.repeats, self.done = [], 0, 0, threading.Event()
 
 
 def run_worker(q, fn, out):
@@ -153,7 +168,10 @@ def run_worker(q, fn, out):
         a = q.get()
         if a is None: out.done.set(); return
         t0 = time.perf_counter()
-        try: text = fn(a, prompt=prev or None)
+        try:
+            text, rep = collapse_repeats(fn(a, prompt=prev or None))
+            if rep: text, rep2 = collapse_repeats(fn(a, prompt=None)); rep += rep2   # bug #89: retry once without the prompt
+            out.repeats += rep
         except Exception as e: out.errors += 1; text = ""; print(f"chunk error: {e}")
         t1 = time.perf_counter()
         out.items.append({"text": text, "t_start": t0, "t_end": t1, "ms": round((t1 - t0) * 1000)})
@@ -311,10 +329,10 @@ def main():
         row = dict(route=r, release_to_text_ms=round(rel), postroll_ms=round(POSTROLL_S * 1000), wait_ms=round(wait_ms), final_asr_ms=fin["ms"],
                    insert=how, insert_ms=round((t1 - t0) * 1000), asr_total_ms=asr_total, rtf=round(asr_total / (audio_s * 1000), 3),
                    chunks=len(out.items), pause_cuts=kinds.count("pause"), forced_cuts=kinds.count("forced"),
-                   audio_s=round(audio_s, 2), speech_s=round(sum(bd["speech_s"] for bd in ch.bounds), 2), errors=out.errors)
+                   audio_s=round(audio_s, 2), speech_s=round(sum(bd["speech_s"] for bd in ch.bounds), 2), errors=out.errors, repeats=out.repeats)
         stats(STATS, text, **row)
         stem = time.strftime("%Y%m%d-%H%M%S")
-        meta = {**row, "profile": PROFILE, "constants": dict(PAUSE_S=PAUSE_S, MIN_CHUNK_S=MIN_CHUNK_S, MAX_CHUNK_S=MAX_CHUNK_S, CONTEXT_WORDS=CONTEXT_WORDS, WINDOW_STEP_S=WINDOW_STEP_S),
+        meta = {**row, "profile": PROFILE, "constants": dict(PAUSE_S=PAUSE_S, MIN_CHUNK_S=MIN_CHUNK_S, MAX_CHUNK_S=MAX_CHUNK_S, CONTEXT_WORDS=CONTEXT_WORDS, WINDOW_SLACK_S=WINDOW_SLACK_S),
                 "t_down_to_up_s": round(t_up - st["t_down"], 2), "chunks_detail": [{**bd, **{k: it[k] for k in ("text", "ms")}} for bd, it in zip(ch.bounds, out.items)], "text": text}
         log_dictation(LOG_DIR, stem, a, text, meta)
 

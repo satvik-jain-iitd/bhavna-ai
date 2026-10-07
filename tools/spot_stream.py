@@ -22,6 +22,6 @@ wait = max(0, (fin["t_start"] - t_fq) * 1000); rel = (t_done - t_up) * 1000
 kinds = [b["kind"] for b in ch.bounds]
 print(f"audio {len(a)/d.SR:.1f}s  chunks {len(out.items)} (pause {kinds.count('pause')} forced {kinds.count('forced')})  "
       f"release→text {rel:.0f}ms = postroll {d.POSTROLL_S*1000:.0f} + wait {wait:.0f} + final {fin['ms']} (+insert)  "
-      f"asr_total {sum(r['ms'] for r in out.items)}ms rtf {sum(r['ms'] for r in out.items)/(len(a)/d.SR*1000):.2f}  errors {out.errors}")
+      f"asr_total {sum(r['ms'] for r in out.items)}ms rtf {sum(r['ms'] for r in out.items)/(len(a)/d.SR*1000):.2f}  errors {out.errors} repeats {out.repeats}")
 for b, r in zip(ch.bounds, out.items): print(f"  {b['start_s']:5.1f}-{b['end_s']:5.1f}s {b['kind']:6} {r['ms']:5d}ms  {r['text']}")
 print("TEXT:", text); print("words", len(text.split()))

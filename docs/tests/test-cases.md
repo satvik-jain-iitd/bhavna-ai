@@ -65,3 +65,6 @@ Rows: app. Columns: INSERT value. Cell: `ok` (inserted at cursor, clipboard rest
 | tests/test_s3_4_chunker.py (T1 to T9) | S3.4 #59 to #67 | chunker, worker, route-once scenarios | unit | green |
 | tests/test_s8_1_log.py (T1, T2) | S8.1 #71, #72 | three files per dictation; empty LOG_DIR writes nothing | unit | green |
 | tests/test_s3_4_report.py | S3.4 #85 | report buckets, percentiles, before/after split | unit | green |
+| tests/test_bugs_window_repeat.py | #88 #89 | window keeps 1 s slack; repeat guard collapses loops, keeps honest repeats | unit | green |
+| #88 tight window → nan | Regression: spot clip first chunk is not `nan` | pending re-run |
+| #89 repetition loop | Regression: spot clip has each sentence once, `repeats` 0 | pending re-run |
