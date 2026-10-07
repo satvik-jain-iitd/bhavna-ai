@@ -61,3 +61,5 @@ Rule: read this first in every session, append before saying done.
 | 41 | owner | Decided: bench runs only when he says; Mac default profile = lean (Apex only) | chat | asked, answered |
 | 42 | agent | ADR-012 lean profile + dynamic 5 s-step encoder window, implemented with tests (red then green), PR #51 merged; D1 PR #50 merged after a docs-only conflict; README, demo D1, journal PR #52 merged | dictate.py, docs | none |
 | 43 | agent | dev -> main PR #47 now carries D0 and D1; owner to merge. Next: D3 live test needs the owner at the keyboard, permissions, and a model load he approves | PR #47 | asked (merge, go-ahead) |
+| 44 | owner | Asked how to test; ran the engine on his Mac; first 5 real dictations; reported: works, small accuracy slips, fast on short, long untested, paste fails in Claude Code | stats.jsonl | reviewed |
+| 45 | agent | Read stats (0.86 s for 2.8 s, 5.1 s for 24 s); confirmed R4 (AX silent failure in terminals); added the settable check and the insert method in stats, tests green, PR | dictate.py, experiments.md | none |

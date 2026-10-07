@@ -111,10 +111,13 @@ class Models:
 
 
 def ax_insert(text):
-    from ApplicationServices import (AXUIElementCreateSystemWide, AXUIElementCopyAttributeValue,
+    from ApplicationServices import (AXUIElementCreateSystemWide, AXUIElementCopyAttributeValue, AXUIElementIsAttributeSettable,
                                      AXUIElementSetAttributeValue, kAXFocusedUIElementAttribute, kAXSelectedTextAttribute)
     err, el = AXUIElementCopyAttributeValue(AXUIElementCreateSystemWide(), kAXFocusedUIElementAttribute, None)
-    return err == 0 and el is not None and AXUIElementSetAttributeValue(el, kAXSelectedTextAttribute, text) == 0
+    if err != 0 or el is None: return False
+    err, settable = AXUIElementIsAttributeSettable(el, kAXSelectedTextAttribute, None)  # terminals say "ok" then insert nothing (R4)
+    if err != 0 or not settable: return False
+    return AXUIElementSetAttributeValue(el, kAXSelectedTextAttribute, text) == 0
 
 
 def paste_insert(text, kb, shift=False):
@@ -163,7 +166,7 @@ def main():
         t = time.perf_counter(); how = insert(text, kb) if text else "empty"; ins_ms = (time.perf_counter() - t) * 1000
         beep(1)
         print(f"[{time.strftime('%H:%M:%S')}] {r:8} lid {lid_ms:4.0f}ms  asr {asr_ms:5.0f}ms  insert {how} {ins_ms:3.0f}ms   \"{text}\"")
-        stats(STATS, text, route=r, lid_ms=round(lid_ms), asr_ms=round(asr_ms), insert_ms=round(ins_ms), audio_s=round(len(a) / SR, 2))
+        stats(STATS, text, route=r, lid_ms=round(lid_ms), asr_ms=round(asr_ms), insert=how, insert_ms=round(ins_ms), audio_s=round(len(a) / SR, 2))
         if LOG_DIR:
             import wave; stem = Path(LOG_DIR) / time.strftime("%Y%m%d-%H%M%S"); Path(LOG_DIR).mkdir(exist_ok=True)
             with wave.open(str(stem) + ".wav", "wb") as w: w.setnchannels(1); w.setsampwidth(2); w.setframerate(SR); w.writeframes((a * 32767).astype(np.int16).tobytes())
