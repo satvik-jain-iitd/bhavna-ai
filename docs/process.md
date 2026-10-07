@@ -128,8 +128,27 @@ Done is not the end. Each increment is followed by a measurement window and a st
 - Heavy runs (more than one model, more than two minutes) are asked for, not started.
 - `uv cache prune` after a conversion session.
 
-### D12. Bugs (added 2026-10-07 after the first live bug)
-Any defect found in use or in test is logged as a GitHub issue with label `bug` before the fix is
-written: summary, environment, steps, expected, actual, evidence, root cause, fix, test gap, status.
-The fixing PR says `Fixes #n`. The bug and the fix also get a row in experiments.md if a hypothesis
+### D12. Bug lifecycle (added 2026-10-07 after the first live bug; owner's rule)
+When the owner or the agent hits a bug or highlights an issue, the bug is logged **before** any fix,
+and tracked to closure with its verification and regression record. All of it lives in GitHub.
+
+1. **Log first.** A GitHub issue with label `bug`, from `.github/ISSUE_TEMPLATE/bug.md`: summary,
+   environment (OS, chip, versions, profile and constants), steps to reproduce, expected, actual,
+   evidence (stats rows, log lines, the owner's words), severity (blocks use / degrades / cosmetic),
+   root cause (filled when known, "unknown" until then), fix (PR link), test gap, status.
+2. **Link to the story it belongs to.** The bug is a GitHub sub-issue of the user story (or epic)
+   whose scenario it breaks, so the story shows its open bugs. If the API refuses, the bug body says
+   `Parent: #n` and the story gets a comment `Bug: #m`.
+3. **Fix.** Branch `fix/<bug-number>-<slug>`. Test first where a unit test can see the defect; where
+   it cannot (silent UI failures), say so in the issue and name the manual matrix row that checks it.
+   The PR says `Fixes #m`.
+4. **Verify and say so.** The bug is closed only after a verification comment on the issue:
+   what was run, on which machine, by whom, result **working** or **not working**, date. "Fixed in
+   code" without a verification is not closed; it stays open with status `fix-pending-verify`.
+5. **Regression.** Every closed bug gets one row in `docs/tests/test-cases.md` under "Regression"
+   (test name or matrix row, bug number). That row is re-checked in each increment's demo.
+   A regression reopens the same issue with a comment `Regression at <commit/date>: <what>`; a
+   new issue is not created, so the history stays in one place.
+6. **Trace.** One row in `docs/process-trace.md` for the report and one for the closure; a line in
+   the journal if the bug changed a decision.
 was wrong, and a line in the journal.

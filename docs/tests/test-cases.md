@@ -34,3 +34,10 @@ Rows: app. Columns: INSERT value. Cell: `ok` (inserted at cursor, clipboard rest
 | tests/test_s3_window_profile.py::test_window_rounds_up_to_5s_steps_with_floor_and_cap | ADR-012 | encoder window = clip rounded up to 5 s, min 5, max 30 | unit | green |
 | tests/test_s3_window_profile.py::test_lean_profile_loads_apex_only | ADR-012 | lean loads Apex only, full loads three | unit | green |
 | tests/test_s3_window_profile.py::test_lean_profile_routes_everything_to_apex | ADR-012 | lean never routes to Parakeet | unit | green |
+
+## Regression (one row per closed bug, re-checked at every increment demo)
+
+| Bug | Check | Last result |
+|---|---|---|
+| #54 AX silent failure in terminals | matrix row Terminal × ax_then_paste must show `insert paste` and text present | pending owner verification |
+| #55 11 s clip to one word | re-run same words with LOG_DIR set; text has more than one word | needs info |
