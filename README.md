@@ -16,6 +16,7 @@ Run:
 ```
 uv run --python 3.12 --project macos macos/dictate.py
 ```
+Or install the one-word command once with `tools/install-shortcut.sh`, then just type `bhavna`.
 First run installs the Python packages (about 1 minute). Models load from `models/` (shipped in the
 zip; never downloaded).
 
