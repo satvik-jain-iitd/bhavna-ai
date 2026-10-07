@@ -71,3 +71,4 @@ Rows: app. Columns: INSERT value. Cell: `ok` (inserted at cursor, clipboard rest
 | #88 tight window → nan | Regression: spot clip first chunk is not `nan` | working, agent, 2026-10-07 |
 | #89 repetition loop | Regression: spot clip has each sentence once | working, agent, 2026-10-07 (guard caught 2) |
 | tests/test_s9_0_wer.py | S9.0 T1 | WER and gap list | unit | green |
+| tests/test_bug_94_real_mic.py | #94 | quiet mic detected and cut at pauses; final tail never trimmed; owner wav regression (≥5 pause cuts, speech ≥25 s, end ≥40 s) | unit + S-tier fixture (log/, not in git) | green |
