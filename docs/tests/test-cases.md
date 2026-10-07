@@ -68,3 +68,5 @@ Rows: app. Columns: INSERT value. Cell: `ok` (inserted at cursor, clipboard rest
 | tests/test_bugs_window_repeat.py | #88 #89 | window keeps 1 s slack; repeat guard collapses loops, keeps honest repeats | unit | green |
 | #88 tight window → nan | Regression: spot clip first chunk is not `nan` | pending re-run |
 | #89 repetition loop | Regression: spot clip has each sentence once, `repeats` 0 | pending re-run |
+| #88 tight window → nan | Regression: spot clip first chunk is not `nan` | working, agent, 2026-10-07 |
+| #89 repetition loop | Regression: spot clip has each sentence once | working, agent, 2026-10-07 (guard caught 2) |
