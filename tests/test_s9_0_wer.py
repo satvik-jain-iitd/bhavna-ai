@@ -9,7 +9,7 @@ def test_wer_and_gaps():
     ref = "Kal subah wali meeting ko evening shift kar do aur Rahul ko email bhej dena."
     hyp = "Kal subah vaali meeting ko evening shift kar do aur raahul ko email bhej dena"
     r = wer.score(ref, hyp)
-    assert r["n_ref"] == 14 and r["errors"] == 2 and abs(r["wer"] - 2 / 14) < 1e-9
+    assert r["n_ref"] == 15 and r["errors"] == 2 and abs(r["wer"] - 2 / 15) < 1e-9
     assert r["gaps"] == [("wali", "vaali"), ("rahul", "raahul")]
 
 
