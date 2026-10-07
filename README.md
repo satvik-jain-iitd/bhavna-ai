@@ -38,10 +38,21 @@ Constants at the top of `macos/dictate.py`:
 | `KEYS` | `{"alt_r": MODE}` | key → mode. Two keys: `{"alt_r": "en", "cmd_r": "hinglish"}` (full profile) |
 | `MODE` | `auto` | `auto` / `en` / `hinglish` (full profile only) |
 | `INSERT` | `ax_then_paste` | `ax` / `paste` / `paste_shift` / `type` / `ax_then_paste` |
-| `WINDOW_STEP_S` | `5` | encoder window step in seconds (ADR-012) |
+| `WINDOW_SLACK_S` | `1.0` | silence left after the speech inside the encoder window (ADR-012) |
 | `LOG_DIR` (env) | unset | when set, saves `(wav, txt)` per dictation for the dictionary and fine-tune phases |
 
-Each dictation prints one line with timings and appends one row to `stats.jsonl` (no text stored).
+Each dictation prints one line with timings (`release→text` and its parts: wait, final chunk, insert) and
+appends one row to `stats.jsonl` (numbers only, no text). `uv run tools/report.py` shows p50/p90 per
+length bucket.
+
+**Local log (on by default).** `log/` gets three files per dictation with one stem: `.wav` (what you
+said, 16 kHz), `.txt` (the inserted text), `.json` (chunks, timings, constants). About 1.9 MB per minute of
+speech. Local only, never leaves the machine; it is the raw material for the personal dictionary and
+later fine-tuning. Turn it off with `LOG_DIR= bhavna` (empty value).
+
+**While you talk,** the engine cuts the audio at pauses (after 4 s, a pause of 250 ms) and transcribes
+each piece in the background, so the text arrives about a second after you release the key however long
+you spoke (ADR-013).
 
 ## Windows
 

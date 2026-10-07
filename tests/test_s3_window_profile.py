@@ -5,12 +5,11 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "macos"))
 import dictate as d
 
 
-def test_window_rounds_up_to_5s_steps_with_floor_and_cap():
-    assert d.window_s(1.0) == 5
-    assert d.window_s(4.9) == 5
-    assert d.window_s(5.0) == 5
-    assert d.window_s(5.1) == 10
-    assert d.window_s(12.5) == 15
+def test_window_is_clip_plus_one_second_whole_seconds_capped():
+    assert d.window_s(1.0) == 2
+    assert d.window_s(4.9) == 6
+    assert d.window_s(5.0) == 6
+    assert d.window_s(12.5) == 14
     assert d.window_s(40.0) == 30
 
 
