@@ -1,0 +1,12 @@
+name: ci
+on:
+  push:
+    branches: [dev, main]
+  pull_request:
+jobs:
+  test:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v5
+      - run: uv run --python 3.12 --with pytest pytest -q tests
