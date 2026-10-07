@@ -161,3 +161,13 @@ English) through `ffmpeg` to 16 kHz mono wav give a repeatable clip in seconds. 
 real code path (`Models(...).hinglish()` and friends), not a mock, and paste the result in the issue
 or PR as the verification. Respect the RAM rules (one model, memory check first). The owner's live
 check comes after, not instead.
+
+### D14. Issue structure (owner's rule, 2026-10-07)
+- A new requirement is a **story** issue (label `story`) under its epic, with Gherkin.
+- A bug or glitch in a requirement that already exists is a **sub-issue of that story** (label `bug`),
+  never a loose issue. Its lifecycle is D12.
+- Every test case for a story is a **sub-issue of that story** (label `test`): one per scenario or
+  per manual check, with the test name or matrix row, and its latest result in the title or body.
+  `docs/tests/test-cases.md` stays the flat index; GitHub holds the tree.
+- Scenario mapping comes before the story is marked ready: list what can happen, what can be missed,
+  and which test covers each line. The list lives in the story body.
