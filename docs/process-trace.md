@@ -73,3 +73,5 @@ Rule: read this first in every session, append before saying done.
 | 53 | agent | Demo D3 written from the owner's live session; tools/zip.sh (mac zip with the lean model) for D6 | demos/D3.md, tools/zip.sh | none |
 | 54 | owner | Reported: long sentences cut part way; guessed the recording did not stop after key release | chat | volunteered |
 | 55 | agent | Stats showed 46 s and 49.7 s clips with half the words: the 30 s window trimmed the tail. Logged #56 (sub-issue of S3.1) before fixing; fix = split at quiet points + 300 ms post-roll; tests red then green; PR | issue #56, dictate.py | none |
+| 56 | owner | "Fix karo, lamba audio aana chahiye" | chat | volunteered |
+| 57 | agent | Verified #56 on a 33 s synthetic clip (split 28.2 + 5.1 s, tail present), closed with evidence; one model loaded, memory 57% free | issue #56 | none |
