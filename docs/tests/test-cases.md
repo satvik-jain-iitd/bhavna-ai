@@ -12,3 +12,10 @@ Every test maps to a story and a Gherkin scenario. Manual rows carry a date and 
 | tests/test_s2_audio.py::test_s2_4_rosetta_guard | S2.4 | refuses to run translated | unit | green |
 | manual | S2.3 | Right Option is the only trigger | matrix | pending live test |
 | manual | S2.5 | start and done sounds | matrix | pending live test |
+| tests/test_s4_router.py::test_s4_1_clear_english_goes_to_parakeet | S4.1 | clear English goes to Parakeet | unit | green |
+| tests/test_s4_router.py::test_s4_1_hinglish_goes_to_apex | S4.1 | Hinglish goes to Apex | unit | green |
+| tests/test_s4_router.py::test_s4_1_boundary_is_english | S4.1 | boundary p(en)=0.80 | unit | green |
+| tests/test_s4_router.py::test_s4_1_unknown_language_goes_to_apex | S4.1 | fail-safe to Apex | unit | green |
+| tests/test_s4_router.py::test_s4_3_pinned_mode_skips_lid | S4.3 | a pinned mode skips LID | unit | green |
+| tests/test_s4_router.py::test_s4_3_two_key_layout_is_one_dict_entry | S4.3 | two-key layout | unit | green |
+| tools/bench.py + experiments.md H1 | S4.1 | LID gate on real clips | bench | see experiments.md |
