@@ -12,3 +12,4 @@ Mirror of the SecondBrain ideas log for this project. One line each. Status: ope
 | 2026-10-07 | ID025 | Repeatable playbook from the process trace | open (E11) |
 | 2026-10-07 | ID026 | Feedback by sound, not screen | taken (FR16) |
 | 2026-10-07 | - | Devanagari mode, GUI, tray icon, VAD, streaming, LLM cleanup, auto hardware detection, Rust port, cloud | dropped for v1 (ADR-010, ADR-006, ADR-009) |
+| 2026-10-09 | ID048 | Self-learning dictionary: learn from every dictation which words come out wrong, replace them before paste; owner trains it regularly | open (v1 word list saved, local only) |
