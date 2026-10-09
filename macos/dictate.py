@@ -2,7 +2,7 @@
 """Bhavna.ai, macOS. Hold the key, speak Hindi / English / both, release. Your exact words land at the cursor.
 Run: uv run --project macos macos/dictate.py
 """
-import json, math, os, platform, queue, subprocess, sys, threading, time, wave
+import json, math, os, platform, queue, re, subprocess, sys, threading, time, wave
 from collections import deque
 from pathlib import Path
 import numpy as np
@@ -22,6 +22,7 @@ CONTEXT_WORDS = 20         # previous chunk's last words go to the decoder as pr
 RESTORE_S = 1.5            # clipboard restore delay after a paste; a slow app reads the clipboard late (bug #97)
 ROOT = Path(__file__).resolve().parents[1]
 MODELS, STATS = ROOT / "models", ROOT / "stats.jsonl"
+DICTIONARY = ROOT / "dictionary.tsv"   # S9.1: heard <TAB> correct <TAB> times <TAB> auto|ask; local only (ADR-014)
 LOG_DIR = os.environ.get("LOG_DIR", str(ROOT / "log"))  # S8.1: on by default, local only; LOG_DIR="" turns it off
 SOUNDS = ("/System/Library/Sounds/Tink.aiff", "/System/Library/Sounds/Bottle.aiff", "/System/Library/Sounds/Pop.aiff")  # start, stop (key up), done (text in)
 SOUND_VOLUME = 3.0         # afplay -v multiplier; 1 = system file level
@@ -52,6 +53,28 @@ def too_short(a): return len(a) < MIN_S * SR
 def stats(path, text, **row):
     row = {"ts": time.strftime("%Y-%m-%dT%H:%M:%S"), **row, "words": len(text.split())}
     with open(path, "a") as f: f.write(json.dumps(row) + "\n")
+
+
+def load_dictionary(path=None):
+    """S9.1: auto rows of dictionary.tsv as {heard (lowercase, single spaces): correct}. Missing file = {}. Read per dictation, so edits work at once."""
+    p = Path(path or DICTIONARY)
+    if not p.exists(): return {}
+    out = {}
+    for line in p.read_text().splitlines():
+        f = line.split("\t")
+        if line.startswith("#") or len(f) < 4 or f[3].strip() != "auto": continue
+        out[" ".join(f[0].lower().split())] = f[1].strip()
+    return out
+
+
+def apply_dictionary(text, rules):
+    """One pass, longest phrase first, whole words, any case and spacing: a swapped word is never swapped again. Returns (text, swaps)."""
+    if not rules: return text, 0
+    alts = "|".join(r"\s+".join(map(re.escape, k.split())) for k in sorted(rules, key=len, reverse=True))
+    n = 0
+    def swap(m):
+        nonlocal n; n += 1; return rules[" ".join(m.group(0).lower().split())]
+    return re.sub(rf"(?<!\w)(?:{alts})(?!\w)", swap, text, flags=re.I), n
 
 
 def translated():
@@ -336,7 +359,8 @@ def main():
         if last is not None: q.put(last)
         q.put(None); out.done.wait()
         if too_short(a) or not out.items: print(f"dropped ({len(a) / SR:.1f}s)"); return
-        text = " ".join(r["text"] for r in out.items if r["text"]); r = st["route"].r or "hinglish"
+        raw = " ".join(r["text"] for r in out.items if r["text"]); r = st["route"].r or "hinglish"
+        text, swaps = apply_dictionary(raw, load_dictionary())
         t0 = time.perf_counter(); how = insert(text, kb) if text else "empty"; t1 = time.perf_counter()
         beep(2)
         fin = out.items[-1]; wait_ms = max(0.0, (fin["t_start"] - t_final_q) * 1000) if last is not None else 0.0
@@ -346,11 +370,11 @@ def main():
         row = dict(route=r, release_to_text_ms=round(rel), postroll_ms=round(POSTROLL_S * 1000), wait_ms=round(wait_ms), final_asr_ms=fin["ms"],
                    insert=how, insert_ms=round((t1 - t0) * 1000), asr_total_ms=asr_total, rtf=round(asr_total / (audio_s * 1000), 3),
                    chunks=len(out.items), pause_cuts=kinds.count("pause"), forced_cuts=kinds.count("forced"),
-                   audio_s=round(audio_s, 2), speech_s=round(sum(bd["speech_s"] for bd in ch.bounds), 2), errors=out.errors, repeats=out.repeats)
+                   audio_s=round(audio_s, 2), speech_s=round(sum(bd["speech_s"] for bd in ch.bounds), 2), errors=out.errors, repeats=out.repeats, dict_swaps=swaps)
         stats(STATS, text, **row)
         stem = time.strftime("%Y%m%d-%H%M%S")
         meta = {**row, "profile": PROFILE, "constants": dict(PAUSE_S=PAUSE_S, MIN_CHUNK_S=MIN_CHUNK_S, MAX_CHUNK_S=MAX_CHUNK_S, CONTEXT_WORDS=CONTEXT_WORDS, WINDOW_SLACK_S=WINDOW_SLACK_S),
-                "t_down_to_up_s": round(t_up - st["t_down"], 2), "chunks_detail": [{**bd, **{k: it[k] for k in ("text", "ms")}} for bd, it in zip(ch.bounds, out.items)], "text": text}
+                "t_down_to_up_s": round(t_up - st["t_down"], 2), "chunks_detail": [{**bd, **{k: it[k] for k in ("text", "ms")}} for bd, it in zip(ch.bounds, out.items)], "raw_text": raw, "text": text}
         log_dictation(LOG_DIR, stem, a, text, meta)
 
     def on_press(k):

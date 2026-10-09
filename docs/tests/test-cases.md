@@ -77,3 +77,4 @@ Rows: app. Columns: INSERT value. Cell: `ok` (inserted at cursor, clipboard rest
 | #97 English text inserted | Regression: paste into Claude Code with English on the clipboard beforehand → Hinglish lands | pending owner run |
 | tests/test_bug_94_real_mic.py (3 owner recordings) | #94 #99 | quiet mic, clean mic, noisy input: ≥5 pause cuts each, tail kept, ≤1 s trimmed | S-tier fixtures (log/, not in git) | green |
 | #99 noisy input hides pauses | Regression: owner wav 190404 ≥ 5 pause cuts | working (unit); owner live pending |
+| tests/test_s9_1_dictionary.py | #103 | dictionary word applied; whole words only; ask rows untouched; longest first, no double swap; any case and spacing; missing file | unit | green |
