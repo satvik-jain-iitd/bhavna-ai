@@ -48,3 +48,46 @@ Rule: read this first in every session, append before saying done.
 - Start the discussion log and the process trace in the first turn, not at the end.
 - Log every idea the moment it is said (the house rule), even in plan mode, by queuing it for the
   first execution step.
+| 31 | agent | Plan approved. Logged 7 ideas (ID020 to ID026) to the SecondBrain ideas log; opened the Ideas folder as an Obsidian vault | SecondBrain | none |
+| 32 | agent | Created repo skeleton, CLAUDE.md with the standing rules, .gitignore, ideas.md, process-trace.md, discussions/2026-10-07.md; private repo satvik-jain-iitd/bhavna-ai; branches main and dev | repo | none |
+| 33 | agent | Split the plan into the docs tree, 11 ADRs, research tables (25 rows, tiers), experiments H1 to H8, test-cases.md, journal, README, CI, placeholder test; PR #1 feat -> dev, CI green, merged | docs, PR #1 | none |
+| 34 | agent | Labels; 12 epic and 33 story issues with Gherkin, DoR, DoD; branch protection refused (private repo, free plan); project board needs owner auth scope | issues | none |
+| 35 | agent | Demo D0 written; dev -> main PR opened for the owner to merge | PR #2 | asked (merge) |
+| 36 | agent | Models converted (two fixes: numba, weights file name); fixtures made (4 TTS + 8 Apex clips); bench run | models/, tests/fixtures, experiments.md | none |
+| 37 | agent | E2 audio/hotkey/sounds/stats with TDD (red then green), PR #48 merged; E4 router tests PR #49 merged | dictate.py, tests | none |
+| 38 | agent | H1 pass (auto routing ships), H2 pass (Apex English word-perfect), H4 pass (Parakeet 0.45 s), H3 fail (Apex 5 s flat: 30 s encoder pad); H3b: window cut 15 s / 10 s gives 2.8 / 2.0 s, fp16 no gain, whisper.cpp 15 s 1.9 s | experiments.md | none |
+| 39 | owner | Mid-work: the laptop was swapping hard (5.6 of 6 GB); asked for RAM consideration | chat | volunteered |
+| 40 | agent | Stopped the bench; memory back to 50% free; RAM rules added to process; asked the owner when to run the last window test and whether the Mac profile should drop Parakeet to save 1.2 GB | process.md | asked |
+| 41 | owner | Decided: bench runs only when he says; Mac default profile = lean (Apex only) | chat | asked, answered |
+| 42 | agent | ADR-012 lean profile + dynamic 5 s-step encoder window, implemented with tests (red then green), PR #51 merged; D1 PR #50 merged after a docs-only conflict; README, demo D1, journal PR #52 merged | dictate.py, docs | none |
+| 43 | agent | dev -> main PR #47 now carries D0 and D1; owner to merge. Next: D3 live test needs the owner at the keyboard, permissions, and a model load he approves | PR #47 | asked (merge, go-ahead) |
+| 44 | owner | Asked how to test; ran the engine on his Mac; first 5 real dictations; reported: works, small accuracy slips, fast on short, long untested, paste fails in Claude Code | stats.jsonl | reviewed |
+| 45 | agent | Read stats (0.86 s for 2.8 s, 5.1 s for 24 s); confirmed R4 (AX silent failure in terminals); added the settable check and the insert method in stats, tests green, PR | dictate.py, experiments.md | none |
+| 46 | owner | Asked that the bug be logged first with full details | chat | volunteered |
+| 47 | agent | Logged #54 (AX silent failure in terminals) and #55 (11 s clip to one word); added rule D12 "log the bug before the fix"; linked PR #53 | issues, process.md | none |
+| 48 | owner | Explained #55: FluidVoice was running with Option+Space; the Option press also fired our hotkey. Not a bug | chat | volunteered |
+| 49 | agent | Closed #55 as not-a-bug with the explanation; README note on running one dictation tool at a time | issue, README | none |
+| 50 | owner | Verified #54 working in Claude Code after the fix (and with FluidVoice closed) | chat | reviewed |
+| 51 | agent | Posted the verification comment with stats evidence (`insert: paste` rows), closed #54, regression row set to working | issue, test-cases.md | none |
+| 52 | owner | Tuned the feedback sound volume live: 3x too low, 5x ok, 10x too loud, settled on 3x; asked for a `bhavna` launcher | chat | volunteered |
+| 53 | agent | Demo D3 written from the owner's live session; tools/zip.sh (mac zip with the lean model) for D6 | demos/D3.md, tools/zip.sh | none |
+| 54 | owner | Reported: long sentences cut part way; guessed the recording did not stop after key release | chat | volunteered |
+| 55 | agent | Stats showed 46 s and 49.7 s clips with half the words: the 30 s window trimmed the tail. Logged #56 (sub-issue of S3.1) before fixing; fix = split at quiet points + 300 ms post-roll; tests red then green; PR | issue #56, dictate.py | none |
+| 56 | owner | "Fix karo, lamba audio aana chahiye" | chat | volunteered |
+| 57 | agent | Verified #56 on a 33 s synthetic clip (split 28.2 + 5.1 s, tail present), closed with evidence; one model loaded, memory 57% free | issue #56 | none |
+| 58 | owner | Liked the self-run spot test with a synthesised Hindi clip; asked to make it part of the process | chat | volunteered |
+| 59 | agent | Added rule D13 "spot test before handing back" (synthesise with `say`, run the real path, paste the result) | process.md | none |
+| 60 | owner | Asked why long transcription is slow; guessed "all at once after release" | chat | volunteered |
+| 61 | agent | Explained the cost (encoder ∝ window, decoder ∝ words, nothing starts before release); proposed streaming chunks at pauses while talking | chat | asked (go / no-go) |
+| 62 | owner | Asked for a proper solution with every scenario mapped; issue rule (story / bug sub-issue / test sub-issue); log on by default for the dictionary dataset; then "start in plan mode"; then epic-level SIT test sub-issues; then deep research on the leaders; then "measure first, numbers not gut, log it all" | chat | reviewed, asked |
+| 63 | agent | D14 rule; story #58 with 16-row scenario map and test sub-issues #59 to #69, #85; story #70 (#71, #72); 12 epic SIT sub-issues; S4.4 #86; research rows 26 to 31; measurement section (release_to_text identity, targets, report tool, decision table) in the approved plan | issues, process.md, stt_models.md | none |
+| 64 | agent | S3.4 + S8.1 built with TDD (14 tests), spot test found #88 and #89, both logged first, fixed, verified; PR #87; H9 recorded | dictate.py, issues, experiments.md | none |
+| 65 | owner | Offered a live "podcast": agent asks, owner dictates answers in Hinglish; "uspe kaam chalu hai na?" | chat | volunteered |
+| 66 | owner | Proposed the read-aloud accuracy test (reference passage on screen, owner reads, diff) | chat | volunteered |
+| 67 | agent | S9.0 story, tools/wer.py, passage 001, accuracy.md (PR #93); first live read-aloud: WER 35% strict, tail missing | accuracy.md | none |
+| 68 | agent | Found the real-mic bug from the log (speech_s 1.3 of 40.7 s, one chunk, tail trimmed); logged it as a sub-issue of #58 before fixing | issue | none |
+| 69 | owner | Read passage 004 live on the fixed engine; reported a new bug: inserted text came out in English | chat | reviewed |
+| 70 | agent | #94 verified and closed (8 pause cuts, full text); logged the short-final-chunk loop bug and the English-insert bug (needs info); accuracy row 004 | issues, accuracy.md | asked (app + sample) |
+| 71 | owner | Asked to learn terminal-without-mouse commands and use that passage as the test | chat | volunteered |
+| 72 | agent | Passage 005 read live: full text, no English, no loop (#96/#97 working on this run), but 0 pause cuts / 5 forced: the noise floor stuck low when the pre-roll was very quiet; next fix is a floor that follows the gaps between words | accuracy.md | none |
+| 73 | agent | #99 logged from the 19:04 recording (floor ≈ speech, 73% energy under 1 kHz, likely AirPods); detector moved to the 300 to 3400 Hz band with a pre-roll floor; tail never trimmed; all three owner recordings pass; asked the owner whether AirPods were in | dictate.py, tests, issue #99 | asked |
