@@ -53,3 +53,11 @@ def test_pick_uses_the_careful_slack_not_the_median():
     assert d.expected_left(0, hist) == 60.0 and d.expected_left(0, hist, q=d.SLACK_Q) == 5.0
     rtf = {"swift": 0.1, "apex": 0.25, "prime": 0.5}
     assert d.pick(12, 0, 0, hist, 4000, rtf)[0] == "apex"               # prime needs 6 s > careful slack 5 s; apex needs 3 s
+
+
+def test_a_corrupt_stats_line_is_skipped_not_fatal(tmp_path):
+    p = tmp_path / "stats.jsonl"
+    rows = [json.dumps({"audio_s": float(x)}) for x in range(1, 41)]
+    rows.insert(7, '{"audio_s": 5.0, "ts": "2026-10')          # a half-written line, e.g. a crash mid-append
+    p.write_text("\n".join(rows) + "\n")
+    assert len(d.talk_history(p)) == 40
