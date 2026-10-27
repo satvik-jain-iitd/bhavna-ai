@@ -94,3 +94,7 @@ Rule: read this first in every session, append before saying done.
 | 74 | owner | Asked for a self-learning dictionary from the dictation logs; wants the logs used, then the audio dropped | chat | volunteered |
 | 75 | agent | Read all 166 logged texts; 99 heard-to-correct pairs saved to dictionary.tsv (local, git-excluded: holds personal and client names); design for apply + prompt hint + learn loop given to owner | dictionary.tsv | asked |
 | 76 | agent | #103: dictionary applied before insert (load_dictionary, apply_dictionary), raw text kept in log, dict_swaps in stats; ADR-014; 6 unit tests green; 3 owner wavs restored from Trash for test_bug_94 | dictate.py, tests, ADR-014 | none |
+| 77 | owner | Asked to run plan scalable-orbiting-lemon (three models in one dictation) micro-task by micro-task | chat | volunteered |
+| 78 | agent | T0.1-T0.3: ideas ID259 and ID261 logged (ID262 duplicate), ideas.md rows, discussions/2026-10-27.md (grade 4.7), issues #109 to #113 for P1 to P5 | ideas.md, discussions, issues | none |
+| 79 | agent | T1.1-T1.3: radar run, scout found nothing; read whisper_streaming, WhisperLiveKit, SimulStreaming; none picks a model by slack; build pick() ourselves | docs/research/repo-radar.md | none |
+| 80 | agent | Stopped before T2.1: disk has 6.1 GiB free (97% full), convert needs about 6 GB, and the Prime model id is not named in the repo docs | chat | asked |
