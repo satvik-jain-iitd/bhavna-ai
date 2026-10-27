@@ -1,6 +1,6 @@
 """Convert Oriserve Hindi2Hinglish models to MLX q8 on a Colab VM, not on the Mac.
 Run: colab run --keep --timeout 2400 tools/convert_colab.py swift prime
-Then: colab download /content/out/<name>.zip models/<name>.zip ; unzip into models/.
+Then: colab download /content/out/<folder>.zip models/<folder>.zip ; unzip into models/. <folder> is swift-mlx or prime-mlx-q8 (DIRS below).
 Same recipe as tools/convert.sh (mlx-examples whisper/convert.py, q8, weights.safetensors).
 """
 import os, subprocess, sys
