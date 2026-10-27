@@ -12,6 +12,8 @@ Plan and case study: `docs/PLAN.md`. Docs index: `docs/README.md`.
 
 Install `uv` once: `curl -LsSf https://astral.sh/uv/install.sh | sh`
 
+After a clone, fetch the ShipQuick process copy once: `git submodule update --init` (the commit hooks need it).
+
 Run:
 ```
 uv run --python 3.12 --project macos macos/dictate.py
