@@ -23,6 +23,12 @@ def summarize(rows):
                      "forced": sum(g("forced_cuts")), "pause": sum(g("pause_cuts")), "errors": sum(g("errors"))}
     return out
 
+def left_table(history, points=(2, 5, 10, 20, 40)):
+    """P3: expected_left at a few talk lengths. Run with: uv run --project macos tools/report.py --left"""
+    sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "macos"))
+    from dictate import expected_left
+    return [(e, expected_left(e, history)) for e in points]
+
 def split(rows, day): return [r for r in rows if r["ts"][:10] < day], [r for r in rows if r["ts"][:10] >= day]
 
 def show(title, rows):
@@ -34,6 +40,11 @@ def show(title, rows):
 if __name__ == "__main__":
     args = sys.argv[1:]; path = Path(args[0]) if args and not args[0].startswith("--") else Path(__file__).resolve().parents[1] / "stats.jsonl"
     rows = [json.loads(l) for l in open(path) if l.strip()]
+    if "--left" in args:
+        from_rows = [r["audio_s"] for r in rows if "audio_s" in r]
+        print(f"## expected talk time left, from {len(from_rows)} dictations")
+        for e, v in left_table(from_rows if len(from_rows) >= 30 else []): print(f"talked {e:>2} s -> {v:5.1f} s left")
+        sys.exit()
     if "--since" in args: rows = [r for r in rows if r["ts"][:10] >= args[args.index("--since") + 1]]
     if "--split" in args:
         before, after = split(rows, args[args.index("--split") + 1]); show("before", before); show("after", after)
