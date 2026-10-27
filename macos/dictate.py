@@ -19,7 +19,8 @@ SR, BLOCK, PREROLL_S, POSTROLL_S, MIN_S = 16000, 1600, 0.5, 0.3, 0.3
 PAUSE_S, MIN_CHUNK_S, MAX_CHUNK_S = 0.25, 4.0, 12.0     # cut after ≥ MIN_CHUNK_S when a pause ≥ PAUSE_S shows; force-cut at MAX_CHUNK_S
 SPEECH_MIN_S, MARGIN_S = 1.0, 0.2    # a chunk needs ≥ SPEECH_MIN_S of speech before it is sent; trim margin around speech
 CONTEXT_WORDS = 20         # previous chunk's last words go to the decoder as prompt (0 = off)
-RESTORE_S = 1.5            # clipboard restore delay after a paste; a slow app reads the clipboard late (bug #97)
+FALLBACK_LEFT_S, MIN_HISTORY_ROWS = 3.0, 30   # P3: guess for "talk time still to come" when his history is too short, and what "too short" means
+RESTORE_S = 1.5           # clipboard restore delay after a paste; a slow app reads the clipboard late (bug #97)
 ROOT = Path(__file__).resolve().parents[1]
 MODELS, STATS = ROOT / "models", ROOT / "stats.jsonl"
 DICTIONARY = ROOT / "dictionary.tsv"   # S9.1: heard <TAB> correct <TAB> times <TAB> auto|ask; local only (ADR-014)
@@ -53,6 +54,21 @@ def too_short(a): return len(a) < MIN_S * SR
 def stats(path, text, **row):
     row = {"ts": time.strftime("%Y-%m-%dT%H:%M:%S"), **row, "words": len(text.split())}
     with open(path, "a") as f: f.write(json.dumps(row) + "\n")
+
+
+def talk_history(path=STATS, min_rows=MIN_HISTORY_ROWS):
+    """P3: talk lengths (audio_s) from his own stats. Under min_rows rows there is too little to trust: []."""
+    try: rows = [json.loads(l) for l in Path(path).read_text().splitlines() if l.strip()]
+    except OSError: return []
+    xs = [r["audio_s"] for r in rows if "audio_s" in r]
+    return xs if len(xs) >= min_rows else []
+
+
+def expected_left(e, history):
+    """P3: median talk time still to come, given e seconds already talked: past talks longer than e, minus e."""
+    left = sorted(h - e for h in history if h > e)
+    if not left: return FALLBACK_LEFT_S
+    n = len(left); return (left[n // 2] + left[(n - 1) // 2]) / 2
 
 
 def load_dictionary(path=None):
