@@ -12,6 +12,8 @@ Plan and case study: `docs/PLAN.md`. Docs index: `docs/README.md`.
 
 Install `uv` once: `curl -LsSf https://astral.sh/uv/install.sh | sh`
 
+After a clone, fetch the ShipQuick process copy once: `git submodule update --init` (the commit hooks need it).
+
 Run:
 ```
 uv run --python 3.12 --project macos macos/dictate.py
@@ -75,6 +77,8 @@ Get-CimInstance Win32_VideoController | Select Name; Get-CimInstance Win32_Compu
 | `tiny-mlx` | language ID, mac (full profile) | 38 MB |
 | `parakeet-v2-mlx` | English, mac (full profile) | 1.2 GB |
 | `apex-ct2-int8`, `tiny-ct2`, `parakeet-v2-onnx`, `ggml/` | Windows (engine chosen by measurement) | see D7 |
+
+Cascade profile (ADR-015, proposed): `swift-mlx` (74 MB) and `prime-mlx-q8` (1.5 GB) are made on Colab by `tools/convert_colab.py`, not on the Mac. The constants at the top of `macos/dictate.py` (`RTF`, `LAST_CHUNK_BUDGET_S`, `PRIME_MIN_TALK_S`, `PRIME_IDLE_S`, `RAM_FLOOR_MB`) are listed with their meaning in ADR-015.
 
 Licences: models Apache 2.0 (Oriserve Apex, OpenAI whisper-tiny) and CC-BY-4.0 (NVIDIA Parakeet).
 

@@ -1,0 +1,17 @@
+repos:
+  - repo: local
+    hooks:
+      - id: check-local
+        name: ShipQuick hygiene checks on this Mac
+        entry: bash knowledge/shipquick_latest/scripts/check_local.sh sizes markers md-blocks secrets-staged
+        language: system
+        pass_filenames: false
+        always_run: true
+        stages: [pre-commit]
+      - id: check-local-push
+        name: All ShipQuick hygiene checks before a push
+        entry: bash knowledge/shipquick_latest/scripts/check_local.sh
+        language: system
+        pass_filenames: false
+        always_run: true
+        stages: [pre-push]
