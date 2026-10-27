@@ -15,3 +15,7 @@ def test_left_table_has_the_five_points_in_order():
 
 def test_left_table_with_no_history_shows_the_fallback():
     assert all(v == 3.0 for _, v in report.left_table([]))
+
+
+def test_left_table_can_show_the_careful_slack_that_pick_uses():
+    assert dict(report.left_table(HIST, q=0.1))[2] < dict(report.left_table(HIST))[2]

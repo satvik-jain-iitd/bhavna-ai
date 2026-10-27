@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """Reads stats.jsonl and prints release-to-text p50/p90 per length bucket, with the parts that explain it.
-Usage: uv run tools/report.py [stats.jsonl] [--since YYYY-MM-DD] [--split YYYY-MM-DD]"""
+Usage: uv run tools/report.py [stats.jsonl] [--since YYYY-MM-DD] [--split YYYY-MM-DD] [--profiles] [--left]"""
 import json, sys
 from pathlib import Path
 
@@ -23,11 +23,22 @@ def summarize(rows):
                      "forced": sum(g("forced_cuts")), "pause": sum(g("pause_cuts")), "errors": sum(g("errors"))}
     return out
 
-def left_table(history, points=(2, 5, 10, 20, 40)):
+def left_table(history, points=(2, 5, 10, 20, 40), q=0.5):
     """P3: expected_left at a few talk lengths. Run with: uv run --project macos tools/report.py --left"""
     sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "macos"))
     from dictate import expected_left
-    return [(e, expected_left(e, history)) for e in points]
+    return [(e, expected_left(e, history, q)) for e in points]
+
+def by_profile(rows):
+    out = {}
+    for r in rows: out.setdefault(r.get("profile", "lean"), []).append(r)   # rows before ADR-015 have no profile: lean
+    return out
+
+def model_mix(rows):
+    out = {}
+    for r in rows:
+        for m, n in r.get("models", {}).items(): out[m] = out.get(m, 0) + n
+    return out
 
 def split(rows, day): return [r for r in rows if r["ts"][:10] < day], [r for r in rows if r["ts"][:10] >= day]
 
@@ -40,10 +51,16 @@ def show(title, rows):
 if __name__ == "__main__":
     args = sys.argv[1:]; path = Path(args[0]) if args and not args[0].startswith("--") else Path(__file__).resolve().parents[1] / "stats.jsonl"
     rows = [json.loads(l) for l in open(path) if l.strip()]
+    if "--profiles" in args:
+        for prof, rs in by_profile(rows).items(): show(f"{prof} (models {model_mix(rs) or 'apex only'})", rs)
+        sys.exit()
     if "--left" in args:
-        from_rows = [r["audio_s"] for r in rows if "audio_s" in r]
-        print(f"## expected talk time left, from {len(from_rows)} dictations")
-        for e, v in left_table(from_rows if len(from_rows) >= 30 else []): print(f"talked {e:>2} s -> {v:5.1f} s left")
+        sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "macos"))
+        import dictate
+        hist = dictate.talk_history(path)   # the same rule pick() sees: under 30 rows = no history
+        print(f"## expected talk time left, from {len(hist)} dictations (0 = too few, fallback)")
+        for (e, med), (_, careful) in zip(left_table(hist), left_table(hist, q=dictate.SLACK_Q)):
+            print(f"talked {e:>2} s -> median {med:5.1f} s | careful (q={dictate.SLACK_Q}, what pick uses) {careful:5.1f} s")
         sys.exit()
     if "--since" in args: rows = [r for r in rows if r["ts"][:10] >= args[args.index("--since") + 1]]
     if "--split" in args:
