@@ -22,6 +22,7 @@ CONTEXT_WORDS = 20         # previous chunk's last words go to the decoder as pr
 FALLBACK_LEFT_S, MIN_HISTORY_ROWS = 3.0, 30   # P3: guess for "talk time still to come" when his history is too short, and what "too short" means
 # P4 cascade (ADR-015). RTF = decode seconds per audio second, M1. ponytail: GUESSES until T2.4 measures them on the M1; replace, do not trust
 RTF = {"swift": 0.09, "apex": 0.46, "prime": 0.92}   # apex 0.46 = measured chunk p50 on 592 logged dictations; swift 0.2x and prime 2x of it are guesses
+RAM_CACHE_S = 5.0          # how long a free-RAM reading is reused
 SLACK_Q = 0.1              # careful slack: the 10th percentile of talk time left, not the median (tools/simulate.py)
 LAST_CHUNK_BUDGET_S, PRIME_MIN_TALK_S, PRIME_IDLE_S, RAM_FLOOR_MB = 0.7, 15.0, 300.0, 1024   # last-chunk decode budget | load Prime only for talks this long | unload after idle | never pick Prime under this free RAM
 RESTORE_S = 1.5          # clipboard restore delay after a paste; a slow app reads the clipboard late (bug #97)
@@ -289,13 +290,24 @@ def route(probs, mode, profile=None):
 
 class LazyModel:
     """P5: loads on first get(), drops after idle_s without use (Prime is 1.5 GB: only resident while it earns it)."""
-    def __init__(self, loader, idle_s=None, clock=time.monotonic):
+    def __init__(self, loader, idle_s=None, clock=time.monotonic, on_unload=None):
         self.loader, self.idle_s, self.clock, self.model, self.used = loader, PRIME_IDLE_S if idle_s is None else idle_s, clock, None, 0.0
+        self.on_unload, self.lock = on_unload, threading.Lock()   # the worker and the idle timer both come here
     def get(self):
-        if self.model is None: self.model = self.loader()
-        self.used = self.clock(); return self.model
+        with self.lock:
+            if self.model is None: self.model = self.loader()
+            self.used = self.clock(); return self.model
     def unload_if_idle(self):
-        if self.model is not None and self.clock() - self.used > self.idle_s: self.model = None
+        with self.lock:
+            if self.model is not None and self.clock() - self.used > self.idle_s:
+                self.model = None
+                if self.on_unload: self.on_unload()
+
+
+def release_memory():
+    """Give the unloaded model's MLX buffers back to the OS (dropping the Python reference alone keeps them cached)."""
+    import gc, mlx.core as mx
+    gc.collect(); (getattr(mx, "clear_cache", None) or mx.metal.clear_cache)()
 
 
 def free_ram_mb(vm_stat_text=None):
@@ -308,13 +320,20 @@ def free_ram_mb(vm_stat_text=None):
 
 class Cascade:
     """P5 (ADR-015): fn(audio, prompt, e, queued_s, released) -> text. pick() chooses; every choice goes to .log."""
-    def __init__(self, models, prime_loader, history, rtf=None, free_mb=free_ram_mb, clock=time.monotonic):
-        self.models, self.prime, self.history, self.rtf, self.free_mb, self.log = models, LazyModel(prime_loader, clock=clock), history, rtf or RTF, free_mb, []
+    def __init__(self, models, prime_loader, history, rtf=None, free_mb=free_ram_mb, clock=time.monotonic, on_unload=None):
+        self.models, self.history, self.rtf, self.free_mb, self.clock, self.log = models, history, rtf or RTF, free_mb, clock, []
+        self.prime, self._last, self._ram = LazyModel(prime_loader, clock=clock, on_unload=on_unload), None, None
+    def _free(self):   # vm_stat is a subprocess: read it at most every RAM_CACHE_S seconds
+        now = self.clock()
+        if self._ram is None or now - self._ram[0] > RAM_CACHE_S: self._ram = (now, self.free_mb())
+        return self._ram[1]
     def __call__(self, a, prompt=None, e=0.0, queued_s=0.0, released=False):
         n = len(a) / SR
+        if a is self._last and self.log: self.log.pop()   # bug #89 retry: same chunk again, one row per chunk
+        self._last = a
         if released: m, why = pick_last(n, self.rtf), "release: last-chunk budget"
         else:
-            m, why = pick(n, queued_s * self.rtf["apex"], e, self.history, self.free_mb(), self.rtf)
+            m, why = pick(n, queued_s * self.rtf["apex"], e, self.history, self._free(), self.rtf)
             if m == "prime" and self.prime.model is None and e < PRIME_MIN_TALK_S: m, why = "apex", why + " (talk too short to load prime)"
         self.log.append({"model": m, "reason": why})
         fn = self.prime.get() if m == "prime" else self.models[m]
@@ -428,7 +447,7 @@ def main():
     kb, ring, busy = keyboard.Controller(), Ring(), threading.Lock()
     keys = {getattr(keyboard.Key, k): v for k, v in KEYS.items()}
     st = {"q": None, "out": None, "chunker": Chunker(), "route": None, "t_down": 0.0, "queued_s": 0.0, "released": False}
-    cas = Cascade({"swift": m.swift, "apex": m.hinglish}, m.prime_loader, talk_history()) if PROFILE == "cascade" else None   # history read once, at start-up
+    cas = Cascade({"swift": m.swift, "apex": m.hinglish}, m.prime_loader, talk_history(), on_unload=release_memory) if PROFILE == "cascade" else None   # history read once, at start-up
 
     def start(mode):
         st["q"], st["out"], st["chunker"] = queue.Queue(), WorkerOut(), Chunker()
@@ -436,7 +455,7 @@ def main():
         if cas: cas.log = []
         def fn(a, prompt=None):
             if cas:   # ADR-015: the cascade picks swift / apex / prime for this chunk
-                st["queued_s"] -= len(a) / SR
+                if a is not st.get("last"): st["queued_s"] -= len(a) / SR; st["last"] = a   # the bug #89 retry passes the same chunk again
                 return cas(a, prompt, e=time.perf_counter() - st["t_down"], queued_s=max(0.0, st["queued_s"]), released=st["released"])
             return (m.en if st["route"](a) == "en" else m.hinglish)(a, prompt=prompt)
         threading.Thread(target=run_worker, args=(st["q"], fn, st["out"]), daemon=True).start()
@@ -473,7 +492,9 @@ def main():
         meta = {**row, "profile": PROFILE, "constants": dict(PAUSE_S=PAUSE_S, MIN_CHUNK_S=MIN_CHUNK_S, MAX_CHUNK_S=MAX_CHUNK_S, CONTEXT_WORDS=CONTEXT_WORDS, WINDOW_SLACK_S=WINDOW_SLACK_S),
                 "t_down_to_up_s": round(t_up - st["t_down"], 2), "chunks_detail": [{**bd, **{k: it[k] for k in ("text", "ms")}, **lg} for bd, it, lg in zip(ch.bounds, out.items, cas.log if cas else [{}] * len(out.items))], "raw_text": raw, "text": text}
         log_dictation(LOG_DIR, stem, a, text, meta)
-        if cas: t = threading.Timer(PRIME_IDLE_S + 1, cas.prime.unload_if_idle); t.daemon = True; t.start()   # give Prime's 1.5 GB back after idle
+        if cas:   # give Prime's 1.5 GB back after idle: one timer, the newest
+            if st.get("timer"): st["timer"].cancel()
+            st["timer"] = threading.Timer(PRIME_IDLE_S + 1, cas.prime.unload_if_idle); st["timer"].daemon = True; st["timer"].start()
 
     def on_press(k):
         if k in keys and ring.rec is None and not busy.locked(): start(keys[k])

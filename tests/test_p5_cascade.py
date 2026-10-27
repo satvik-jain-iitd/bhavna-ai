@@ -84,3 +84,41 @@ VM = "Mach Virtual Memory Statistics: (page size of 16384 bytes)\nPages free:   
 
 def test_free_ram_is_free_plus_inactive_plus_speculative():
     assert d.free_ram_mb(VM) == (6353 + 87669 + 1000) * 16384 // 2**20
+
+
+# review of #117 (bhavna-dev): bug #89 retry, double load, vm_stat per chunk
+def test_the_bug_89_retry_logs_one_row_per_chunk():
+    import queue
+    calls = []
+    def looping(a, prompt=None): calls.append(prompt); return "kya haal hai " * 5 if len(calls) == 1 else "kya haal hai"      # a looping phrase: run_worker retries once
+    c = d.Cascade({"swift": looping, "apex": looping}, lambda: None, history=HIST, rtf=RTF, free_mb=lambda: 4000, clock=Clock())
+    q, out, a = queue.Queue(), d.WorkerOut(), audio(2)
+    q.put(a); q.put(None)
+    d.run_worker(q, lambda x, prompt=None: c(x, prompt, e=0), out)
+    assert len(calls) == 2 and len(out.items) == 1 and len(c.log) == 1 and c.counts() == {"apex": 1}
+
+
+def test_two_threads_asking_for_prime_load_it_once():
+    import threading, time as t
+    loads = []
+    h = d.LazyModel(lambda: (loads.append(1), t.sleep(0.05), "m")[2], idle_s=300, clock=Clock())
+    ts = [threading.Thread(target=h.get) for _ in range(2)]
+    [x.start() for x in ts]; [x.join() for x in ts]
+    assert len(loads) == 1
+
+
+def test_unloading_prime_calls_the_release_hook():
+    clock, released = Clock(), []
+    h = d.LazyModel(lambda: "m", idle_s=300, clock=clock, on_unload=lambda: released.append(1))
+    h.get(); clock.t = 301; h.unload_if_idle()
+    assert released == [1]
+
+
+def test_free_ram_is_read_at_most_once_per_few_seconds():
+    n, clock = [], Clock()
+    c = d.Cascade({"swift": lambda a, prompt=None: "s", "apex": lambda a, prompt=None: "a"}, lambda: None, history=HIST, rtf=RTF,
+                  free_mb=lambda: n.append(1) or 4000, clock=clock)
+    c(audio(2), None, e=0); c(audio(2), None, e=1)
+    assert len(n) == 1
+    clock.t = 10; c(audio(2), None, e=2)
+    assert len(n) == 2
