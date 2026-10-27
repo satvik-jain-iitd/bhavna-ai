@@ -41,3 +41,15 @@ def test_loader_skips_rows_without_audio_s_and_a_missing_file(tmp_path):
     p.write_text("\n".join(json.dumps({"audio_s": 5.0} if i % 2 else {"words": 3}) for i in range(80)) + "\n")
     assert len(d.talk_history(p)) == 40
     assert d.talk_history(tmp_path / "nope.jsonl") == []
+
+
+def test_a_low_quantile_is_the_careful_slack():
+    assert abs(d.expected_left(0, HIST, q=0.1) - 4.9) < 1e-9           # between the 2nd (4) and 3rd (5) shortest talk
+    assert d.expected_left(0, HIST, q=0.5) == d.expected_left(0, HIST)  # q = 0.5 is the median, as before
+
+
+def test_pick_uses_the_careful_slack_not_the_median():
+    hist = [5.0] * 10 + [60.0] * 30     # a quarter of his talks are short: median slack is long, careful slack is short
+    assert d.expected_left(0, hist) == 60.0 and d.expected_left(0, hist, q=d.SLACK_Q) == 5.0
+    rtf = {"swift": 0.1, "apex": 0.25, "prime": 0.5}
+    assert d.pick(12, 0, 0, hist, 4000, rtf)[0] == "apex"               # prime needs 6 s > careful slack 5 s; apex needs 3 s

@@ -83,3 +83,20 @@ Every open claim becomes a hypothesis with a test. Rows are never deleted.
 
 | H3-live | Lean profile with the 5 s-step window is fast enough in daily use | Owner's first live session, 5 dictations, stats.jsonl | English/Hinglish under 1.2 s for short clips; long clips reported | 2026-10-07 | 2.8 s clip → 0.86 s; 10 to 12 s → 2.3 s; 24 s / 95 words → 5.1 s. About 0.2 s per spoken second, linear. One 11 s clip gave 1 word (cause unknown, owner to say what was spoken) | Short dictation meets the target; long ones scale linearly. Accuracy: small slips ("transparai"), owner calls it fine for v1. Insertion failed inside Claude Code in the terminal: AX reported success, nothing inserted (R4 confirmed). Fix: AXUIElementIsAttributeSettable check before AX, else paste |
 | H9 | Transcribing while talking brings release-to-text under 1 s p50 / 1.5 s p90 for any dictation up to 60 s (ADR-013) | spot_stream.py real-time feed on a 38.6 s synthetic Hinglish clip, then the owner's live dictations via tools/report.py | targets met → ship; else decision table in the plan | 2026-10-07 | Baseline 24 s → 5.5 s. After: 38.6 s → 811 to 1131 ms (final chunk 504 to 823 ms, wait 0, rtf 0.22). Bugs found and fixed on the way: #88 tight window → nan, #89 loop | **Pass on synthetic**; owner live (T11) pending. Lever if p50 slips: lower MIN_CHUNK_S so the final chunk is shorter |
+
+## Pending: Apex Hinglish in Handy (whisper.cpp) vs Bhavna (MLX), added 2026-10-09
+- Hypothesis: Handy's engine (whisper.cpp Metal) runs `ggml-apex-hinglish-q8_0.bin` within 20% of Bhavna's MLX speed on this Mac. My guess: no, about 2 times slower (ADR-003). Confidence 0.6.
+- Design: both engines, same 13 clips in `tests/fixtures`, RUNS=5, p50 and p90 release-to-text, same text check.
+- Needs: `brew install whisper-cpp`; Bhavna stopped for 5 minutes (8 GB RAM).
+- Decision: within 20% -> AI Assistant uses Handy's engine. Slower -> Handy UI plus Bhavna MLX engine on Mac.
+- Status: parked by Satvik. Not run yet.
+
+## 2026-10-27: cascade scheduler on logged timing, no model run (E12, plan scalable-orbiting-lemon, #110 #112 #113)
+- Hypothesis (H-cascade-1): picking Swift, Apex or Prime per chunk from slack cuts release-to-text p90 without a worse p50.
+- Design: `tools/simulate.py` replays the chunk timing of 592 logged dictations through one FIFO worker. Lean uses each chunk's real decode time. Other models are Apex's time times a ratio (swift 0.15 to 0.3, prime 1.2 to 3), because Swift and Prime are not measured yet. Apex chunk RTF p50 is 0.46 (p90 1.21).
+- Check of the tool: simulated lean p50 1.92 s, p90 10.15 s. Measured lean p50 2.57 s, p90 11.28 s. About 0.6 to 1.1 s optimistic.
+- Result 1: with the median talk time left as slack, the cascade is worse than lean (likely scenario p50 4.31 s, p90 15.2 s). Prime took 83% of the audio and the backlog piled up. His talk-length history is flat (about 22 s left at every point), so the median slack is always large.
+- Result 2: with the 10th percentile as slack (`SLACK_Q = 0.1`) the cascade gives p50 1.5 to 1.9 s and p90 5.9 to 8.7 s, with 18% to 66% of the audio on Prime. p90 is better than lean in all three scenarios; p50 is about the same.
+- Not met: targets B1 (p50 under 1.0 s) and B2 (p90 under 1.5 s). The scheduler alone cannot reach them. The slow cases are big final chunks and busy-machine decode times. Next ideas, in order: shorter last chunk at release (a), early decode at the first pause (b), then a smaller Apex window.
+- Caveat: the simulator knows speed, not accuracy. "All Swift" is fastest and worst. The model mix is only a proxy. WER per model (T2.5) decides whether Prime is worth its share.
+- Decision: keep `SLACK_Q = 0.1`. The real run waits for the owner's yes to load models on the Mac. T2.4 numbers replace the guessed ratios. Not decided: whether to ship the cascade at all (Phase 6).

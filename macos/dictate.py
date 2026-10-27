@@ -21,7 +21,8 @@ SPEECH_MIN_S, MARGIN_S = 1.0, 0.2    # a chunk needs ≥ SPEECH_MIN_S of speech 
 CONTEXT_WORDS = 20         # previous chunk's last words go to the decoder as prompt (0 = off)
 FALLBACK_LEFT_S, MIN_HISTORY_ROWS = 3.0, 30   # P3: guess for "talk time still to come" when his history is too short, and what "too short" means
 # P4 cascade (ADR-015). RTF = decode seconds per audio second, M1. ponytail: GUESSES until T2.4 measures them on the M1; replace, do not trust
-RTF = {"swift": 0.08, "apex": 0.2, "prime": 0.45}
+RTF = {"swift": 0.09, "apex": 0.46, "prime": 0.92}   # apex 0.46 = measured chunk p50 on 592 logged dictations; swift 0.2x and prime 2x of it are guesses
+SLACK_Q = 0.1              # careful slack: the 10th percentile of talk time left, not the median (tools/simulate.py)
 LAST_CHUNK_BUDGET_S, PRIME_MIN_TALK_S, PRIME_IDLE_S, RAM_FLOOR_MB = 0.7, 15.0, 300.0, 1024   # last-chunk decode budget | load Prime only for talks this long | unload after idle | never pick Prime under this free RAM
 RESTORE_S = 1.5          # clipboard restore delay after a paste; a slow app reads the clipboard late (bug #97)
 ROOT = Path(__file__).resolve().parents[1]
@@ -67,16 +68,18 @@ def talk_history(path=STATS, min_rows=MIN_HISTORY_ROWS):
     return xs if len(xs) >= min_rows else []
 
 
-def expected_left(e, history):
-    """P3: median talk time still to come, given e seconds already talked: past talks longer than e, minus e."""
+def expected_left(e, history, q=0.5):
+    """P3: talk time still to come, given e seconds already talked: past talks longer than e, minus e. q = 0.5 is the median;
+    a low q is a careful guess (ADR-015: the simulator showed the median makes Prime pile up a backlog)."""
     left = sorted(h - e for h in history if h > e)
     if not left: return FALLBACK_LEFT_S
-    n = len(left); return (left[n // 2] + left[(n - 1) // 2]) / 2
+    pos = q * (len(left) - 1); lo = int(pos)
+    return left[lo] + (left[min(lo + 1, len(left) - 1)] - left[lo]) * (pos - lo)
 
 
 def pick(len_s, backlog_s, e, history, free_mb, rtf=None):
     """P4: model for a chunk while he still talks. Prime if backlog + len*RTF fits the slack, else Apex, else Swift (ADR-015)."""
-    rtf, slack = rtf or RTF, expected_left(e, history)
+    rtf, slack = rtf or RTF, expected_left(e, history, SLACK_Q)
     if free_mb >= RAM_FLOOR_MB and backlog_s + len_s * rtf["prime"] <= slack: m = "prime"
     elif backlog_s + len_s * rtf["apex"] <= slack: m = "apex"
     else: m = "swift"
