@@ -15,7 +15,9 @@ def sh(cmd):
 
 
 sh("pip install -q 'mlx[cpu]' numba torch transformers tiktoken safetensors more-itertools huggingface_hub")
-sh("git clone -q --depth 1 https://github.com/ml-explore/mlx-examples /content/mlx-examples || true")
+MLX_EXAMPLES_SHA = "796f5b53cab69a3d48a44233ce21aae889e94a08"   # main on 2026-04-06; the recipe was tested at this commit. Move it on purpose, then re-run T2.4.
+sh("git clone -q https://github.com/ml-explore/mlx-examples /content/mlx-examples || true")
+sh(f"git -C /content/mlx-examples checkout -q {MLX_EXAMPLES_SHA}")
 sh("pip install -q -r /content/mlx-examples/whisper/mlx_whisper/requirements.txt")
 os.makedirs("/content/out", exist_ok=True)
 for name in sys.argv[1:] or IDS:
