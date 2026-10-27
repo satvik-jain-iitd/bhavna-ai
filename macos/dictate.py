@@ -20,7 +20,10 @@ PAUSE_S, MIN_CHUNK_S, MAX_CHUNK_S = 0.25, 4.0, 12.0     # cut after ≥ MIN_CHUN
 SPEECH_MIN_S, MARGIN_S = 1.0, 0.2    # a chunk needs ≥ SPEECH_MIN_S of speech before it is sent; trim margin around speech
 CONTEXT_WORDS = 20         # previous chunk's last words go to the decoder as prompt (0 = off)
 FALLBACK_LEFT_S, MIN_HISTORY_ROWS = 3.0, 30   # P3: guess for "talk time still to come" when his history is too short, and what "too short" means
-RESTORE_S = 1.5           # clipboard restore delay after a paste; a slow app reads the clipboard late (bug #97)
+# P4 cascade (ADR-015). RTF = decode seconds per audio second, M1. ponytail: GUESSES until T2.4 measures them on the M1; replace, do not trust
+RTF = {"swift": 0.08, "apex": 0.2, "prime": 0.45}
+LAST_CHUNK_BUDGET_S, PRIME_MIN_TALK_S, PRIME_IDLE_S, RAM_FLOOR_MB = 0.7, 15.0, 300.0, 1024   # last-chunk decode budget | load Prime only for talks this long | unload after idle | never pick Prime under this free RAM
+RESTORE_S = 1.5          # clipboard restore delay after a paste; a slow app reads the clipboard late (bug #97)
 ROOT = Path(__file__).resolve().parents[1]
 MODELS, STATS = ROOT / "models", ROOT / "stats.jsonl"
 DICTIONARY = ROOT / "dictionary.tsv"   # S9.1: heard <TAB> correct <TAB> times <TAB> auto|ask; local only (ADR-014)
@@ -69,6 +72,25 @@ def expected_left(e, history):
     left = sorted(h - e for h in history if h > e)
     if not left: return FALLBACK_LEFT_S
     n = len(left); return (left[n // 2] + left[(n - 1) // 2]) / 2
+
+
+def pick(len_s, backlog_s, e, history, free_mb, rtf=None):
+    """P4: model for a chunk while he still talks. Prime if backlog + len*RTF fits the slack, else Apex, else Swift (ADR-015)."""
+    rtf, slack = rtf or RTF, expected_left(e, history)
+    if free_mb >= RAM_FLOOR_MB and backlog_s + len_s * rtf["prime"] <= slack: m = "prime"
+    elif backlog_s + len_s * rtf["apex"] <= slack: m = "apex"
+    else: m = "swift"
+    return m, f"slack {slack:.1f}s backlog {backlog_s:.1f}s len {len_s:.1f}s free {free_mb}MB -> {m}"
+
+
+def pick_last(len_s, rtf=None):
+    """P4: the last chunk, at release: Apex only if it fits the budget, else Swift."""
+    return "apex" if len_s * (rtf or RTF)["apex"] <= LAST_CHUNK_BUDGET_S else "swift"
+
+
+def redo_with_prime(len_s, backlog_s, e, history, free_mb, rtf=None, released=False):
+    """P4: a Swift-done chunk goes to Prime again only while he talks and Prime still fits."""
+    return not released and pick(len_s, backlog_s, e, history, free_mb, rtf)[0] == "prime"
 
 
 def load_dictionary(path=None):
