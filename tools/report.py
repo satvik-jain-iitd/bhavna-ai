@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """Reads stats.jsonl and prints release-to-text p50/p90 per length bucket, with the parts that explain it.
-Usage: uv run tools/report.py [stats.jsonl] [--since YYYY-MM-DD] [--split YYYY-MM-DD]"""
+Usage: uv run tools/report.py [stats.jsonl] [--since YYYY-MM-DD] [--split YYYY-MM-DD] [--profiles] [--left]"""
 import json, sys
 from pathlib import Path
 
@@ -29,6 +29,17 @@ def left_table(history, points=(2, 5, 10, 20, 40)):
     from dictate import expected_left
     return [(e, expected_left(e, history)) for e in points]
 
+def by_profile(rows):
+    out = {}
+    for r in rows: out.setdefault(r.get("profile", "lean"), []).append(r)   # rows before ADR-015 have no profile: lean
+    return out
+
+def model_mix(rows):
+    out = {}
+    for r in rows:
+        for m, n in r.get("models", {}).items(): out[m] = out.get(m, 0) + n
+    return out
+
 def split(rows, day): return [r for r in rows if r["ts"][:10] < day], [r for r in rows if r["ts"][:10] >= day]
 
 def show(title, rows):
@@ -40,6 +51,9 @@ def show(title, rows):
 if __name__ == "__main__":
     args = sys.argv[1:]; path = Path(args[0]) if args and not args[0].startswith("--") else Path(__file__).resolve().parents[1] / "stats.jsonl"
     rows = [json.loads(l) for l in open(path) if l.strip()]
+    if "--profiles" in args:
+        for prof, rs in by_profile(rows).items(): show(f"{prof} (models {model_mix(rs) or 'apex only'})", rs)
+        sys.exit()
     if "--left" in args:
         from_rows = [r["audio_s"] for r in rows if "audio_s" in r]
         print(f"## expected talk time left, from {len(from_rows)} dictations")
