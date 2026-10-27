@@ -6,7 +6,7 @@ Standing rules, every session:
 1. First action: read `docs/process-trace.md`. Last action before "done": append this session's steps to it (one row each: date, step, actor, what, artifact, owner contact asked / volunteered / reviewed).
 2. Every owner message that changes direction gets bullets in `docs/discussions/YYYY-MM-DD.md`.
 3. Every idea the owner states is logged at once with `~/Desktop/SecondBrain/tools/idea.py` and one line in `docs/ideas.md`.
-4. Work only from GitHub issues. Branch `feat/<issue>-<slug>` from `dev`. PR feat -> dev (self-review checklist, CI green). PR dev -> main at each demo increment; the owner merges main.
+4. Work only from GitHub issues. Branch `feat/<issue>-<slug>` from `dev`. PR feat -> dev (self-review checklist, CI green). PR dev -> main at each demo increment; the owner merges main. bhavna-dev opens every PR, dev to main included; bhavna-qa only reviews and merges.
 5. TDD: failing test first, named after the Gherkin scenario, failure pasted in the PR. Tests listed in `docs/tests/test-cases.md`.
 6. Ponytail: only the code the story needs. No GUI, tray, VAD, streaming, LLM cleanup (ADR-010).
 7. Definition of Ready before a story starts; Definition of Done before it closes (docs/PLAN.md Part D).
