@@ -61,9 +61,12 @@ def stats(path, text, **row):
 
 def talk_history(path=STATS, min_rows=MIN_HISTORY_ROWS):
     """P3: talk lengths (audio_s) from his own stats. Under min_rows rows there is too little to trust: []."""
-    try: rows = [json.loads(l) for l in Path(path).read_text().splitlines() if l.strip()]
+    try: lines = Path(path).read_text().splitlines()
     except OSError: return []
-    xs = [r["audio_s"] for r in rows if "audio_s" in r]
+    xs = []
+    for l in lines:
+        try: xs.append(json.loads(l)["audio_s"])
+        except (ValueError, KeyError, TypeError): pass   # a blank, half-written or foreign line must not stop start-up
     return xs if len(xs) >= min_rows else []
 
 

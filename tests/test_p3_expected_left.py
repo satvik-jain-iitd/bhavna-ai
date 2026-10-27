@@ -41,3 +41,11 @@ def test_loader_skips_rows_without_audio_s_and_a_missing_file(tmp_path):
     p.write_text("\n".join(json.dumps({"audio_s": 5.0} if i % 2 else {"words": 3}) for i in range(80)) + "\n")
     assert len(d.talk_history(p)) == 40
     assert d.talk_history(tmp_path / "nope.jsonl") == []
+
+
+def test_a_corrupt_stats_line_is_skipped_not_fatal(tmp_path):
+    p = tmp_path / "stats.jsonl"
+    rows = [json.dumps({"audio_s": float(x)}) for x in range(1, 41)]
+    rows.insert(7, '{"audio_s": 5.0, "ts": "2026-10')          # a half-written line, e.g. a crash mid-append
+    p.write_text("\n".join(rows) + "\n")
+    assert len(d.talk_history(p)) == 40
