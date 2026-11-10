@@ -1,0 +1,22 @@
+# The ShipQuick checks every pull request needs (added by ShipQuick scripts/adopt.sh): a call to the reusable workflow, pinned to one commit.
+# To move to a newer ShipQuick release, run adopt.sh again with --ref <tag>: it changes `uses:` and `shipquick_ref` together.
+name: ShipQuick checks
+
+on:
+  pull_request:
+
+permissions:
+  contents: read
+  pull-requests: read
+  issues: read
+
+jobs:
+  shipquick-checks:
+    permissions:
+      contents: read
+      pull-requests: read
+      issues: read
+    uses: satvik-jain-iitd/shipquick_latest/.github/workflows/checks.yml@f66e41a087de94db14c0203dd6972a487ba06c28 # v0.11.1
+    with:
+      shipquick_ref: f66e41a087de94db14c0203dd6972a487ba06c28
+      milestone: D0
